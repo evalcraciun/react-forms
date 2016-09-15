@@ -1,0 +1,13 @@
+{
+    "parser": "babel-eslint",
+    "extends": "airbnb",
+    "parserOptions": {
+        "ecmaFeatures": {
+            "experimentalObjectRestSpread": true
+        }
+    },
+    "rules": {
+        "react/prefer-stateless-function": [2, { "ignorePureComponents": true }],
+        "no-underscore-dangle": "off"
+    }
+}
