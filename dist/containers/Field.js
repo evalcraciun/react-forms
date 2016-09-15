@@ -4,6 +4,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = require('react');
@@ -17,6 +19,10 @@ var _FieldError = require('./FieldError');
 var _FieldError2 = _interopRequireDefault(_FieldError);
 
 var _FormActions = require('../actions/FormActions');
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -36,55 +42,11 @@ var Field = function (_React$Component) {
   }
 
   _createClass(Field, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {
-      if (!this.props.form) {
-        throw new Error('Field must be inside a Form');
-      }
-    }
-  }, {
-    key: 'onInputChanged',
-    value: function onInputChanged(event) {
-      console.log(event);
-      var value = event.target.value;
-      var field = event.target.name;
-
-      this.props.changeField(field, value);
-      this.props.validateField(field, value);
-    }
-  }, {
-    key: 'onSelectChanged',
-    value: function onSelectChanged(event) {
-      var value = event.target.value;
-      var field = event.target.name;
-
-      this.props.changeField(field, value);
-      this.props.validateField(field, value);
-    }
-  }, {
-    key: 'onRadioChanged',
-    value: function onRadioChanged(event) {
-      var field = event.target.name;
-      var value = document.querySelector('input[name="' + field + '"]:checked').value;
-
-      this.props.changeField(field, value);
-      this.props.validateField(field, value);
-    }
-  }, {
-    key: 'onCheckboxChanged',
-    value: function onCheckboxChanged(event) {
-      var value = !!event.target.checked;
-      var field = event.target.name;
-
-      this.props.changeField(field, value);
-      this.props.validateField(field, value);
-    }
-  }, {
     key: 'render',
     value: function render() {
       return _react2.default.createElement(
         'div',
-        { className: 'luvago-react-form-field' },
+        { className: "formField " + (this.props.hasErrors ? 'hasErrors' : '') },
         this.renderChildren(this.props)
       );
     }
@@ -105,33 +67,56 @@ var Field = function (_React$Component) {
         switch (child.type) {
           case 'input':
             {
-              console.log(child);
               switch (child.props.type.toString().toLowerCase()) {
                 case 'checkbox':
                   return _react2.default.cloneElement(child, {
-                    onChange: _this2.onCheckboxChanged.bind(_this2)
+                    onChange: function onChange(event) {
+                      var value = !!event.target.checked;
+                      var field = event.target.name;
+
+                      _this2.changeField(field, value);
+                      _this2.validateField();
+                      _this2.clearErrors();
+                    }
                   });
                 case 'radio':
                   return _react2.default.cloneElement(child, {
-                    onChange: _this2.onRadioChanged.bind(_this2)
+                    onChange: function onChange(event) {
+                      var field = event.target.name;
+                      var value = document.querySelector('input[name="' + field + '"]:checked').value;
+
+                      _this2.changeField(field, value);
+                      _this2.validateField();
+                      _this2.clearErrors();
+                    }
                   });
                 case 'file': // TODO
                 default:
                   return _react2.default.cloneElement(child, {
-                    onChange: _this2.onInputChanged.bind(_this2)
+                    onChange: function onChange(event) {
+                      var value = event.target.value;
+                      var field = event.target.name;
+
+                      _this2.changeField(field, value);
+                      _this2.clearErrors();
+                    },
+                    onBlur: function onBlur(event) {
+                      _this2.validateField();
+                    }
                   });
               }
             }
           case 'select':
             {
               return _react2.default.cloneElement(child, {
-                onChange: _this2.onSelectChanged.bind(_this2)
-              });
-            }
-          case _FieldError2.default:
-            {
-              return _react2.default.cloneElement(child, {
-                formName: _this2.props.formName
+                onChange: function onChange(event) {
+                  var value = event.target.value;
+                  var field = event.target.name;
+
+                  _this2.changeField(field, value);
+                  _this2.validateField();
+                  _this2.clearErrors();
+                }
               });
             }
           default:
@@ -139,35 +124,82 @@ var Field = function (_React$Component) {
         }
       });
     }
+  }, {
+    key: 'changeField',
+    value: function changeField(key, value) {
+      var newValue = void 0;
+
+      if (key) {
+        newValue = _extends({}, this.props.fieldValue);
+
+        _lodash2.default.set(newValue, key, value);
+      } else {
+        newValue = value;
+      }
+
+      var formName = this.props.formName;
+      var fieldName = this.props.fieldName;
+      this.props.changeField(formName, fieldName, newValue);
+    }
+  }, {
+    key: 'validateField',
+    value: function validateField() {
+      var formName = this.props.formName;
+      var fieldName = this.props.fieldName;
+      var validators = this.props.validators;
+      this.props.validateField(formName, fieldName, this.props.fieldValue, validators);
+    }
+  }, {
+    key: 'clearErrors',
+    value: function clearErrors() {
+      var formName = this.props.formName;
+      var fieldName = this.props.fieldName;
+
+      if (this.props.hasErrors) {
+        this.props.clearValidation(formName, fieldName);
+      }
+    }
   }]);
 
   return Field;
 }(_react2.default.Component);
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
-  var form = ownProps.form;
-  var formName = ownProps.form.props.formName;
-  var validators = ownProps.form.props.validators;
+  var formName = ownProps.formName;
+  var fieldName = ownProps.fieldName;
+  var fieldValue = null;
+
+  if (state.form[formName] && state.form[formName].fields && state.form[formName].fields[ownProps.fieldName]) {
+    fieldValue = state.form[formName].fields[ownProps.fieldName];
+  }
+
+  var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
+
+  var hasErrors = fieldErrors.length;
 
   return {
-    form: form,
-    validators: validators,
-    formName: formName
+    validators: ownProps.validators,
+    fieldName: fieldName,
+    fieldValue: fieldValue,
+    fieldErrors: fieldErrors,
+    hasErrors: hasErrors
   };
 };
 
-var mapDispatchToProps = function mapDispatchToProps(dispatch, getState) {
-  var formName = getState.form.props.formName;
-  var validators = getState.form.props.validators;
-
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
-    validateField: function validateField(field, value) {
-      if (validators[field] && validators[field].length > 0) {
-        dispatch((0, _FormActions.validateField)(formName, field, value, validators[field]));
+    validateField: function validateField(form, field, value, validators) {
+      //console.log(form, field, value, validators);
+      if (validators.length) {
+        dispatch((0, _FormActions.validateField)(form, field, value, validators));
       }
     },
-    changeField: function changeField(field, value) {
-      dispatch((0, _FormActions.acChangeField)(formName, field, value));
+    changeField: function changeField(form, field, value) {
+      //console.log(form, field, value);
+      dispatch((0, _FormActions.acChangeField)(form, field, value));
+    },
+    clearValidation: function clearValidation(form, field) {
+      dispatch((0, _FormActions.acClearValidation)(form, field));
     }
   };
 };

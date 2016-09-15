@@ -3,51 +3,13 @@ import { connect } from 'react-redux';
 
 import FieldError from './FieldError';
 
-import { acChangeField, validateField } from '../actions/FormActions';
+import { acChangeField, validateField, acClearValidation } from '../actions/FormActions';
+import _ from 'lodash';
 
 class Field extends React.Component {
-  componentDidMount() {
-    if (!this.props.form) {
-      throw new Error('Field must be inside a Form');
-    }
-  }
-
-  onInputChanged(event) {
-    console.log(event);
-    const value = event.target.value;
-    const field = event.target.name;
-
-    this.props.changeField(field, value);
-    this.props.validateField(field, value);
-  }
-
-  onSelectChanged(event) {
-    const value = event.target.value;
-    const field = event.target.name;
-
-    this.props.changeField(field, value);
-    this.props.validateField(field, value);
-  }
-
-  onRadioChanged(event) {
-    const field = event.target.name;
-    const value = document.querySelector(`input[name="${field}"]:checked`).value;
-
-    this.props.changeField(field, value);
-    this.props.validateField(field, value);
-  }
-
-  onCheckboxChanged(event) {
-    const value = !!event.target.checked;
-    const field = event.target.name;
-
-    this.props.changeField(field, value);
-    this.props.validateField(field, value);
-  }
-
   render() {
     return (
-      <div className="luvago-react-form-field">
+      <div className={"formField " + (this.props.hasErrors ? 'hasErrors' : '')}>
         {this.renderChildren(this.props)}
       </div>
     )
@@ -63,31 +25,55 @@ class Field extends React.Component {
     return React.Children.map(props.children, child => {
       switch (child.type) {
         case 'input': {
-          console.log(child);
           switch (child.props.type.toString().toLowerCase()) {
             case 'checkbox':
               return React.cloneElement(child, {
-                onChange: this.onCheckboxChanged.bind(this)
+                onChange: (event) => {
+                  const value = !!event.target.checked;
+                  const field = event.target.name;
+
+                  this.changeField(field, value);
+                  this.validateField();
+                  this.clearErrors();
+                }
               });
             case 'radio':
               return React.cloneElement(child, {
-                onChange: this.onRadioChanged.bind(this)
+                onChange: (event) => {
+                  const field = event.target.name;
+                  const value = document.querySelector(`input[name="${field}"]:checked`).value;
+
+                  this.changeField(field, value);
+                  this.validateField();
+                  this.clearErrors();
+                }
               });
             case 'file': // TODO
             default:
               return React.cloneElement(child, {
-                onChange: this.onInputChanged.bind(this)
+                onChange: (event) => {
+                  const value = event.target.value;
+                  const field = event.target.name;
+
+                  this.changeField(field, value);
+                  this.clearErrors();
+                },
+                onBlur: (event) => {
+                  this.validateField();
+                }
               });
           }
         }
         case 'select': {
           return React.cloneElement(child, {
-            onChange: this.onSelectChanged.bind(this)
-          });
-        }
-        case FieldError: {
-          return React.cloneElement(child, {
-            formName: this.props.formName,
+            onChange: (event) => {
+              const value = event.target.value;
+              const field = event.target.name;
+
+              this.changeField(field, value);
+              this.validateField();
+              this.clearErrors();
+            },
           });
         }
         default:
@@ -95,33 +81,84 @@ class Field extends React.Component {
       }
     });
   }
+
+  changeField(key, value) {
+    let newValue;
+
+    if (key) {
+      newValue = {
+        ...this.props.fieldValue,
+      };
+
+      _.set(newValue, key, value);
+    } else {
+      newValue = value;
+    }
+
+    const formName = this.props.formName;
+    const fieldName = this.props.fieldName;
+    this.props.changeField(formName, fieldName, newValue);
+  }
+
+  validateField() {
+    const formName = this.props.formName;
+    const fieldName = this.props.fieldName;
+    const validators = this.props.validators;
+    this.props.validateField(formName, fieldName, this.props.fieldValue, validators);
+  }
+
+  clearErrors() {
+    const formName = this.props.formName;
+    const fieldName = this.props.fieldName;
+
+    if (this.props.hasErrors) {
+      this.props.clearValidation(formName, fieldName);
+    }
+  }
 }
 
 const mapStateToProps = (state, ownProps) => {
-  const form = ownProps.form;
-  const formName = ownProps.form.props.formName;
-  const validators = ownProps.form.props.validators;
+  const formName = ownProps.formName;
+  const fieldName = ownProps.fieldName;
+  let fieldValue = null;
+
+  if (state.form[formName] &&
+    state.form[formName].fields &&
+    state.form[formName].fields[ownProps.fieldName]) {
+    fieldValue = state.form[formName].fields[ownProps.fieldName];
+  }
+
+  const fieldErrors = (state.form[formName] &&
+    state.form[formName].errors &&
+    state.form[formName].errors[fieldName] &&
+    state.form[formName].errors[fieldName].length) ? state.form[formName].errors[fieldName] : [];
+
+  const hasErrors = fieldErrors.length;
 
   return {
-    form,
-    validators,
-    formName,
+    validators: ownProps.validators,
+    fieldName,
+    fieldValue,
+    fieldErrors,
+    hasErrors,
   }
 };
 
-const mapDispatchToProps = (dispatch, getState) => {
-  const formName = getState.form.props.formName;
-  const validators = getState.form.props.validators;
-
+const mapDispatchToProps = (dispatch) => {
   return {
-    validateField: (field, value) => {
-      if (validators[field] && validators[field].length > 0) {
-        dispatch(validateField(formName, field, value, validators[field]))
+    validateField: (form, field, value, validators) => {
+      //console.log(form, field, value, validators);
+      if (validators.length) {
+        dispatch(validateField(form, field, value, validators));
       }
     },
-    changeField: (field, value) => {
-      dispatch(acChangeField(formName, field, value))
+    changeField: (form, field, value) => {
+      //console.log(form, field, value);
+      dispatch(acChangeField(form, field, value));
     },
+    clearValidation: (form, field) => {
+      dispatch(acClearValidation(form, field));
+    }
   }
 };
 

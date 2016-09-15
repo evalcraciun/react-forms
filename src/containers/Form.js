@@ -11,7 +11,8 @@ class Form extends React.Component {
   }
 
   componentDidMount() {
-    this.props.initForm(this.props.formFields);
+    console.log(this.props.initialData);
+    this.props.initForm(this.props.initialData || {});
   }
 
   componentWillUnmount() {
@@ -21,21 +22,9 @@ class Form extends React.Component {
   render() {
     return (
       <form className="luvago-react-form" onSubmit={this.handleSubmit.bind(this)}>
-        {this.renderChildren(this.props)}
+        {this.props.children}
       </form>
     )
-  }
-
-  renderChildren(props) {
-    return React.Children.map(props.children, child => {
-      if (child.type === Field) {
-        return React.cloneElement(child, {
-          form: this,
-        });
-      } else {
-        return child;
-      }
-    });
   }
 }
 
@@ -47,38 +36,23 @@ Form.propTypes = {
 
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
+
   const stateForm = state.form[formName];
   const initialData = ownProps.initialData || {};
 
-  let formFields = {
+  let errors = {};
+  let fields = {
     ...initialData,
   };
 
-  let formErrors = {};
-
   if (stateForm) {
-    formFields = stateForm.fields || {};
-    formErrors = stateForm.errors || {};
-  }
-
-  // traverse all children
-  let children = React.Children.toArray(ownProps.children);
-  while (children.length) {
-    const child = children.pop();
-
-    if (child.type === Field) {
-      formFields[child.props.name] = child.props.value;
-    } else {
-      if (child.props.children) {
-        children.push(...React.Children.toArray(child.props.children));
-      }
-    }
+    errors = stateForm.errors || {};
+    fields = stateForm.fields || {};
   }
 
   return {
-    formName,
-    formFields,
-    formErrors,
+    fields,
+    errors,
   }
 };
 
@@ -86,6 +60,7 @@ const mapDispatchToProps = (dispatch, getState) => {
   const formName = getState.formName;
   return {
     initForm: (fields) => {
+      console.log(formName, fields);
       dispatch(initForm(formName, fields))
     },
     clearForm: () => {
