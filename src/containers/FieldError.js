@@ -4,11 +4,6 @@ import { connect } from 'react-redux';
 import { acChangeField, validateField } from '../actions/FormActions';
 
 class FieldError extends React.Component {
-  componentDidMount() {
-    if (!this.props.formName) {
-      throw new Error('FieldError must be inside a Form');
-    }
-  }
   render() {
     return (<span>{this.props.errors.join(' ')}</span>);
   }

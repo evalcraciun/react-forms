@@ -1,4 +1,4 @@
-import { INIT_FORM, CHANGE_FIELD, CLEAR_FORM, ATTACH_REQUEST, VALIDATION_ERROR, CLEAR_VALIDATION_ERROR } from '../actions/FormActions'
+import { INIT_FORM, CHANGE_FIELD, CLEAR_FORM, ATTACH_META, VALIDATION_ERROR, SET_LOADING, CLEAR_VALIDATION_ERROR } from '../actions/FormActions'
 
 
 const initialState = {}
@@ -18,7 +18,7 @@ const formReducer = (state = initialState, action) => {
 						...action.initialFields
 					},
 					changed: false,
-					id: action.id
+          loading: false,
 				}
 			}
 		}
@@ -36,12 +36,12 @@ const formReducer = (state = initialState, action) => {
 				}
 			}
 		}
-		case ATTACH_REQUEST: {
+		case ATTACH_META: {
 			return {
 				...state,
 				[action.form] : {
 					...state[action.form],
-					request: action.requestId
+					meta: action.meta
 				}
 			}
 		}
@@ -57,13 +57,17 @@ const formReducer = (state = initialState, action) => {
 				}
 			}
 		}
+    case SET_LOADING: {
+      return {
+        ...state,
+        [action.form]: {
+          ...state[action.form],
+          loading: !!action.loading,
+        }
+      }
+    }
 		case CLEAR_VALIDATION_ERROR: {
-			const keys = Object.keys(state[action.form].errors).filter(obj => obj!=action.field)
-			let newErrors = {}
-			keys.forEach( key => {
-				newErrors[key] = state[action.form].errors[key]
-			})
-
+		  const { [action.field]: removed, ...newErrors} = state[action.form].errors;
 			return {
 				...state,
 				[action.form] : {
@@ -74,14 +78,10 @@ const formReducer = (state = initialState, action) => {
 		}
 		case CLEAR_FORM: {
 			if (state[action.name]) {
-				const keys = Object.keys(state).filter(obj => obj!=action.name)
-				let newState = {}
-				keys.forEach( key => {
-					newState[key] = state[key]
-				})
-				// console.log(newState);
-				// delete newState[action.name]
-				return newState
+			  const { [action.name]: removed, ...newState } = state;
+				return {
+          ...newState
+        }
 			}
 			return state
 		}

@@ -4,8 +4,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = require('react');
@@ -40,12 +38,15 @@ var Form = function (_React$Component) {
   _createClass(Form, [{
     key: 'handleSubmit',
     value: function handleSubmit(event) {
-      console.log(event);
+      if (this.props.handleSubmit && !this.props.hasErrors) {
+        return this.props.handleSubmit(event);
+      }
+      event.preventDefault();
+      return false;
     }
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      console.log(this.props.initialData);
       this.props.initForm(this.props.initialData || {});
     }
   }, {
@@ -79,17 +80,13 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var stateForm = state.form[formName];
   var initialData = ownProps.initialData || {};
 
-  var errors = {};
-  var fields = _extends({}, initialData);
-
-  if (stateForm) {
-    errors = stateForm.errors || {};
-    fields = stateForm.fields || {};
-  }
+  var hasErrors = stateForm && stateForm.errors && Object.keys(stateForm.errors).length;
+  var isLoading = stateForm && stateForm.loading;
 
   return {
-    fields: fields,
-    errors: errors
+    hasErrors: hasErrors,
+    isLoading: isLoading,
+    initialData: initialData
   };
 };
 
@@ -97,7 +94,6 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch, getState) {
   var formName = getState.formName;
   return {
     initForm: function initForm(fields) {
-      console.log(formName, fields);
       dispatch((0, _FormActions.initForm)(formName, fields));
     },
     clearForm: function clearForm() {

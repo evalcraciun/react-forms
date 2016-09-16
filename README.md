@@ -4,9 +4,9 @@ This Package provides Containers to work with forms.
 
 ```jsx
 <Form formName="test-form">
-  <Field fieldName="user">
+  <Field formName="test-form" fieldName="user">
     <!-- fieldName references a field within "user", to structure complex datatypes -->
-    <input type="text" fieldName="firstName" />
+    <input type="text" name="firstName" />
 
     <!-- used to display errors -->
     <FieldError />

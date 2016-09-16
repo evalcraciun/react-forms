@@ -4,11 +4,11 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _FormActions = require('../actions/FormActions');
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -29,7 +29,7 @@ var formReducer = function formReducer() {
 				return _extends({}, state, _defineProperty({}, action.name, {
 					fields: _extends({}, action.initialFields),
 					changed: false,
-					id: action.id
+					loading: false
 				}));
 			}
 		case _FormActions.CHANGE_FIELD:
@@ -40,10 +40,10 @@ var formReducer = function formReducer() {
 					fields: _extends({}, fields, _defineProperty({}, action.field, action.value))
 				})));
 			}
-		case _FormActions.ATTACH_REQUEST:
+		case _FormActions.ATTACH_META:
 			{
 				return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
-					request: action.requestId
+					meta: action.meta
 				})));
 			}
 		case _FormActions.VALIDATION_ERROR:
@@ -52,45 +52,31 @@ var formReducer = function formReducer() {
 					errors: _extends({}, state[action.form].errors, _defineProperty({}, action.field, action.errors))
 				})));
 			}
+		case _FormActions.SET_LOADING:
+			{
+				return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
+					loading: !!action.loading
+				})));
+			}
 		case _FormActions.CLEAR_VALIDATION_ERROR:
 			{
-				var _ret = function () {
-					var keys = Object.keys(state[action.form].errors).filter(function (obj) {
-						return obj != action.field;
-					});
-					var newErrors = {};
-					keys.forEach(function (key) {
-						newErrors[key] = state[action.form].errors[key];
-					});
+				var _state$action$form$er = state[action.form].errors;
+				var removed = _state$action$form$er[action.field];
 
-					return {
-						v: _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
-							errors: newErrors
-						})))
-					};
-				}();
+				var newErrors = _objectWithoutProperties(_state$action$form$er, [action.field]);
 
-				if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+				return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
+					errors: newErrors
+				})));
 			}
 		case _FormActions.CLEAR_FORM:
 			{
 				if (state[action.name]) {
-					var _ret2 = function () {
-						var keys = Object.keys(state).filter(function (obj) {
-							return obj != action.name;
-						});
-						var newState = {};
-						keys.forEach(function (key) {
-							newState[key] = state[key];
-						});
-						// console.log(newState);
-						// delete newState[action.name]
-						return {
-							v: newState
-						};
-					}();
+					var _removed = state[action.name];
 
-					if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
+					var newState = _objectWithoutProperties(state, [action.name]);
+
+					return _extends({}, newState);
 				}
 				return state;
 			}

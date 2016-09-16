@@ -1,4 +1,4 @@
-export const CHANGE_FIELD = "CHANGE_FIELD"
+export const CHANGE_FIELD = "CHANGE_FIELD";
 export const acChangeField = (form, field, value) => {
   return {
     type: CHANGE_FIELD,
@@ -6,19 +6,18 @@ export const acChangeField = (form, field, value) => {
     field,
     value
   }
-}
+};
 
-export const INIT_FORM = 'INIT_FORM'
-export const acInitForm = (name, initialFields, id) => {
+export const INIT_FORM = 'INIT_FORM';
+export const acInitForm = (name, initialFields) => {
   return {
     type: INIT_FORM,
     name,
-    initialFields,
-    id
+    initialFields
   }
-}
+};
 
-export const VALIDATION_ERROR = "VALIDATION_ERROR"
+export const VALIDATION_ERROR = "VALIDATION_ERROR";
 export const acValidationError = (form, field, errors) => {
   return {
     type: VALIDATION_ERROR,
@@ -26,17 +25,43 @@ export const acValidationError = (form, field, errors) => {
     field,
     errors
   }
-}
+};
 
-export const CLEAR_VALIDATION_ERROR = "CLEAR_VALIDATION_ERROR"
+export const CLEAR_VALIDATION_ERROR = "CLEAR_VALIDATION_ERROR";
 export const acClearValidation = (form, field) => {
   return {
     type: CLEAR_VALIDATION_ERROR,
     form,
     field
   }
-}
+};
 
+export const ATTACH_META = 'ATTACH_META';
+export const acAttachMeta = (form, meta) => {
+  return {
+    type: ATTACH_META,
+    form,
+    meta,
+  }
+};
+
+
+export const CLEAR_FORM = 'CLEAR_FORM';
+export const acClearForm = (name) => {
+  return {
+    type: CLEAR_FORM,
+    name
+  }
+};
+
+export const SET_LOADING = 'SET_LOADING';
+export const acSetLoading = (form, loading) => {
+  return {
+    type: SET_LOADING,
+    form,
+    loading,
+  }
+};
 
 export const initForm = (name, initialFields, id) => {
   return (dispatch, getState) => {
@@ -44,17 +69,17 @@ export const initForm = (name, initialFields, id) => {
       return dispatch(acInitForm(name, initialFields, id))
     }
   }
-}
+};
 
 export const validateField = (form, field, value, validators) => {
   return (dispatch, getState) => {
-    let errors = []
+    let errors = [];
     validators.forEach( func => {
-      const error = func(value)
+      const error = func(value);
       if (error) {
         errors.push(error)
       }
-    })
+    });
     if (errors.length>0) {
       return dispatch(acValidationError(form, field, errors))
     } else {
@@ -63,24 +88,4 @@ export const validateField = (form, field, value, validators) => {
       }
     }
   }
-
-
-}
-
-export const ATTACH_REQUEST = 'ATTACH_REQUEST'
-export const acAttachRequest = (form, requestId) => {
-  return {
-    type: ATTACH_REQUEST,
-    form,
-    requestId
-  }
-}
-
-
-export const CLEAR_FORM = 'CLEAR_FORM'
-export const acClearForm = (name) => {
-  return {
-    type: CLEAR_FORM,
-    name
-  }
-}
+};

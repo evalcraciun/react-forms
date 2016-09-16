@@ -167,7 +167,7 @@ var Field = function (_React$Component) {
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;
   var fieldName = ownProps.fieldName;
-  var fieldValue = null;
+  var fieldValue = '';
 
   if (state.form[formName] && state.form[formName].fields && state.form[formName].fields[ownProps.fieldName]) {
     fieldValue = state.form[formName].fields[ownProps.fieldName];

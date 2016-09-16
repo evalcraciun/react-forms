@@ -120,7 +120,7 @@ class Field extends React.Component {
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
   const fieldName = ownProps.fieldName;
-  let fieldValue = null;
+  let fieldValue = '';
 
   if (state.form[formName] &&
     state.form[formName].fields &&

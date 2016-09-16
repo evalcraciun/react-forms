@@ -22,48 +22,68 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var FieldError = function (_React$Component) {
-  _inherits(FieldError, _React$Component);
+var Submit = function (_React$Component) {
+  _inherits(Submit, _React$Component);
 
-  function FieldError() {
-    _classCallCheck(this, FieldError);
+  function Submit() {
+    _classCallCheck(this, Submit);
 
-    return _possibleConstructorReturn(this, (FieldError.__proto__ || Object.getPrototypeOf(FieldError)).apply(this, arguments));
+    var _this = _possibleConstructorReturn(this, (Submit.__proto__ || Object.getPrototypeOf(Submit)).call(this));
+
+    _this.handleSubmit = _this.handleSubmit.bind(_this);
+    return _this;
   }
 
-  _createClass(FieldError, [{
+  _createClass(Submit, [{
+    key: 'handleSubmit',
+    value: function handleSubmit(event) {
+      if (this.props.isLoading || this.props.isDisabled) {
+        return false;
+      }
+    }
+  }, {
     key: 'render',
     value: function render() {
       return _react2.default.createElement(
-        'span',
-        null,
-        this.props.errors.join(' ')
+        'button',
+        { className: this.props.className, onClick: this.handleSubmit },
+        this.renderLabel()
       );
+    }
+  }, {
+    key: 'renderLabel',
+    value: function renderLabel() {
+      if (this.props.isLoading) {
+        return this.props.labelLoading;
+      } else if (this.props.isDisabled) {
+        return this.props.labelDisabled;
+      } else {
+        return this.props.label;
+      }
     }
   }]);
 
-  return FieldError;
+  return Submit;
 }(_react2.default.Component);
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
-  var errors = [];
   var formName = ownProps.formName;
-  var fieldName = ownProps.fieldName;
-  var formState = state.form[formName];
+  var form = state.form[formName];
+  var hasErrors = form && form.errors && Object.keys(form.errors).length;
 
-  if (formState && formState.errors && Object.keys(formState.errors).length) {
-    var fieldErrors = formState.errors[fieldName];
+  var label = ownProps.label || 'Send';
+  var labelLoading = ownProps.labelLoading || 'Loading...';
+  var labelDisabled = ownProps.labelDisabled || label;
 
-    if (fieldErrors) {
-      errors = fieldErrors.map(function (fieldError) {
-        return fieldError.text;
-      });
-    }
-  }
+  var isLoading = form && form.loading;
 
   return {
-    errors: errors
+    isDisabled: hasErrors,
+    isLoading: isLoading,
+    label: label,
+    labelLoading: labelLoading,
+    labelDisabled: labelDisabled
   };
 };
 
-exports.default = (0, _reactRedux.connect)(mapStateToProps)(FieldError);
+exports.default = (0, _reactRedux.connect)(mapStateToProps)(Submit);

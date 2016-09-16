@@ -14,12 +14,11 @@ var acChangeField = exports.acChangeField = function acChangeField(form, field, 
 };
 
 var INIT_FORM = exports.INIT_FORM = 'INIT_FORM';
-var acInitForm = exports.acInitForm = function acInitForm(name, initialFields, id) {
+var acInitForm = exports.acInitForm = function acInitForm(name, initialFields) {
   return {
     type: INIT_FORM,
     name: name,
-    initialFields: initialFields,
-    id: id
+    initialFields: initialFields
   };
 };
 
@@ -39,6 +38,32 @@ var acClearValidation = exports.acClearValidation = function acClearValidation(f
     type: CLEAR_VALIDATION_ERROR,
     form: form,
     field: field
+  };
+};
+
+var ATTACH_META = exports.ATTACH_META = 'ATTACH_META';
+var acAttachMeta = exports.acAttachMeta = function acAttachMeta(form, meta) {
+  return {
+    type: ATTACH_META,
+    form: form,
+    meta: meta
+  };
+};
+
+var CLEAR_FORM = exports.CLEAR_FORM = 'CLEAR_FORM';
+var acClearForm = exports.acClearForm = function acClearForm(name) {
+  return {
+    type: CLEAR_FORM,
+    name: name
+  };
+};
+
+var SET_LOADING = exports.SET_LOADING = 'SET_LOADING';
+var acSetLoading = exports.acSetLoading = function acSetLoading(form, loading) {
+  return {
+    type: SET_LOADING,
+    form: form,
+    loading: loading
   };
 };
 
@@ -66,22 +91,5 @@ var validateField = exports.validateField = function validateField(form, field, 
         return dispatch(acClearValidation(form, field));
       }
     }
-  };
-};
-
-var ATTACH_REQUEST = exports.ATTACH_REQUEST = 'ATTACH_REQUEST';
-var acAttachRequest = exports.acAttachRequest = function acAttachRequest(form, requestId) {
-  return {
-    type: ATTACH_REQUEST,
-    form: form,
-    requestId: requestId
-  };
-};
-
-var CLEAR_FORM = exports.CLEAR_FORM = 'CLEAR_FORM';
-var acClearForm = exports.acClearForm = function acClearForm(name) {
-  return {
-    type: CLEAR_FORM,
-    name: name
   };
 };

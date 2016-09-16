@@ -7,11 +7,14 @@ import { initForm, acClearForm } from '../actions/FormActions';
 
 class Form extends React.Component {
   handleSubmit(event) {
-    console.log(event);
+    if (this.props.handleSubmit && !this.props.hasErrors) {
+      return this.props.handleSubmit(event);
+  }
+    event.preventDefault();
+    return false;
   }
 
   componentDidMount() {
-    console.log(this.props.initialData);
     this.props.initForm(this.props.initialData || {});
   }
 
@@ -40,19 +43,13 @@ const mapStateToProps = (state, ownProps) => {
   const stateForm = state.form[formName];
   const initialData = ownProps.initialData || {};
 
-  let errors = {};
-  let fields = {
-    ...initialData,
-  };
-
-  if (stateForm) {
-    errors = stateForm.errors || {};
-    fields = stateForm.fields || {};
-  }
+  const hasErrors = (stateForm && stateForm.errors && Object.keys(stateForm.errors).length);
+  const isLoading = (stateForm && stateForm.loading);
 
   return {
-    fields,
-    errors,
+    hasErrors,
+    isLoading,
+    initialData,
   }
 };
 
@@ -60,7 +57,6 @@ const mapDispatchToProps = (dispatch, getState) => {
   const formName = getState.formName;
   return {
     initForm: (fields) => {
-      console.log(formName, fields);
       dispatch(initForm(formName, fields))
     },
     clearForm: () => {
