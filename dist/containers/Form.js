@@ -38,8 +38,8 @@ var Form = function (_React$Component) {
   _createClass(Form, [{
     key: 'handleSubmit',
     value: function handleSubmit(event) {
-      if (this.props.handleSubmit && !this.props.hasErrors) {
-        return this.props.handleSubmit(event);
+      if (this.props.onSubmit && !this.props.hasErrors) {
+        return this.props.onSubmit(event, this.props.formData);
       }
       event.preventDefault();
       return false;
@@ -83,10 +83,13 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var hasErrors = stateForm && stateForm.errors && Object.keys(stateForm.errors).length;
   var isLoading = stateForm && stateForm.loading;
 
+  var formData = stateForm ? stateForm.fields : initialData;
+
   return {
     hasErrors: hasErrors,
     isLoading: isLoading,
-    initialData: initialData
+    initialData: initialData,
+    formData: formData
   };
 };
 

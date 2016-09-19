@@ -7,8 +7,8 @@ import { initForm, acClearForm } from '../actions/FormActions';
 
 class Form extends React.Component {
   handleSubmit(event) {
-    if (this.props.handleSubmit && !this.props.hasErrors) {
-      return this.props.handleSubmit(event);
+    if (this.props.onSubmit && !this.props.hasErrors) {
+      return this.props.onSubmit(event, this.props.formData);
   }
     event.preventDefault();
     return false;
@@ -46,10 +46,13 @@ const mapStateToProps = (state, ownProps) => {
   const hasErrors = (stateForm && stateForm.errors && Object.keys(stateForm.errors).length);
   const isLoading = (stateForm && stateForm.loading);
 
+  const formData = stateForm ? stateForm.fields : initialData;
+
   return {
     hasErrors,
     isLoading,
     initialData,
+    formData,
   }
 };
 

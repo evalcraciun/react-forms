@@ -7,9 +7,29 @@ import { acChangeField, validateField, acClearValidation } from '../actions/Form
 import _ from 'lodash';
 
 class Field extends React.Component {
+  constructor() {
+    super();
+  }
+
+  getFieldValue(key) {
+    return _.isObject(this.props.fieldValue) ? _.get(this.props.fieldValue, key, '') : this.props.fieldValue;
+  }
+
   render() {
+    let classNames = ['formField'];
+
+    if (this.props.hasErrors) {
+      classNames.push('hasErrors');
+    }
+
+    if (this.props.className) {
+      classNames.push(...(_.isArray(this.props.className) ?
+        this.props.className :
+        this.props.className.split(' ')))
+    }
+
     return (
-      <div className={"formField " + (this.props.hasErrors ? 'hasErrors' : '')}>
+      <div className={classNames.join(' ')}>
         {this.renderChildren(this.props)}
       </div>
     )
@@ -35,7 +55,8 @@ class Field extends React.Component {
                   this.changeField(field, value);
                   this.validateField();
                   this.clearErrors();
-                }
+                },
+                checked: this.getFieldValue(_.get(child, 'props.name', null))
               });
             case 'radio':
               return React.cloneElement(child, {
@@ -46,9 +67,9 @@ class Field extends React.Component {
                   this.changeField(field, value);
                   this.validateField();
                   this.clearErrors();
-                }
+                },
+                checked: this.getFieldValue(_.get(child, 'props.name', null))
               });
-            case 'file': // TODO
             default:
               return React.cloneElement(child, {
                 onChange: (event) => {
@@ -60,7 +81,8 @@ class Field extends React.Component {
                 },
                 onBlur: (event) => {
                   this.validateField();
-                }
+                },
+                value: this.getFieldValue(_.get(child, 'props.name', null))
               });
           }
         }
@@ -74,9 +96,21 @@ class Field extends React.Component {
               this.validateField();
               this.clearErrors();
             },
+            selected: this.getFieldValue(_.get(child, 'props.name', null))
           });
         }
         default:
+          return React.cloneElement(child, {
+            onChange: (event, value) => {
+              const field = event.target.name;
+
+              this.changeField(field, value);
+              this.validateField();
+              this.clearErrors();
+            },
+            value: this.getFieldValue(_.get(child, 'props.name', null))
+          });
+
           return child;
       }
     });
@@ -146,7 +180,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    validateField: (form, field, value, validators) => {
+    validateField: (form, field, value, validators = []) => {
       //console.log(form, field, value, validators);
       if (validators.length) {
         dispatch(validateField(form, field, value, validators));

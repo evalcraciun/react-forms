@@ -26,6 +26,8 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -38,15 +40,30 @@ var Field = function (_React$Component) {
   function Field() {
     _classCallCheck(this, Field);
 
-    return _possibleConstructorReturn(this, (Field.__proto__ || Object.getPrototypeOf(Field)).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Field.__proto__ || Object.getPrototypeOf(Field)).call(this));
   }
 
   _createClass(Field, [{
+    key: 'getFieldValue',
+    value: function getFieldValue(key) {
+      return _lodash2.default.isObject(this.props.fieldValue) ? _lodash2.default.get(this.props.fieldValue, key, '') : this.props.fieldValue;
+    }
+  }, {
     key: 'render',
     value: function render() {
+      var classNames = ['formField'];
+
+      if (this.props.hasErrors) {
+        classNames.push('hasErrors');
+      }
+
+      if (this.props.className) {
+        classNames.push.apply(classNames, _toConsumableArray(_lodash2.default.isArray(this.props.className) ? this.props.className : this.props.className.split(' ')));
+      }
+
       return _react2.default.createElement(
         'div',
-        { className: "formField " + (this.props.hasErrors ? 'hasErrors' : '') },
+        { className: classNames.join(' ') },
         this.renderChildren(this.props)
       );
     }
@@ -77,7 +94,8 @@ var Field = function (_React$Component) {
                       _this2.changeField(field, value);
                       _this2.validateField();
                       _this2.clearErrors();
-                    }
+                    },
+                    checked: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
                   });
                 case 'radio':
                   return _react2.default.cloneElement(child, {
@@ -88,9 +106,9 @@ var Field = function (_React$Component) {
                       _this2.changeField(field, value);
                       _this2.validateField();
                       _this2.clearErrors();
-                    }
+                    },
+                    checked: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
                   });
-                case 'file': // TODO
                 default:
                   return _react2.default.cloneElement(child, {
                     onChange: function onChange(event) {
@@ -102,7 +120,8 @@ var Field = function (_React$Component) {
                     },
                     onBlur: function onBlur(event) {
                       _this2.validateField();
-                    }
+                    },
+                    value: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
                   });
               }
             }
@@ -116,10 +135,22 @@ var Field = function (_React$Component) {
                   _this2.changeField(field, value);
                   _this2.validateField();
                   _this2.clearErrors();
-                }
+                },
+                selected: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
               });
             }
           default:
+            return _react2.default.cloneElement(child, {
+              onChange: function onChange(event, value) {
+                var field = event.target.name;
+
+                _this2.changeField(field, value);
+                _this2.validateField();
+                _this2.clearErrors();
+              },
+              value: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
+            });
+
             return child;
         }
       });
@@ -188,7 +219,9 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
-    validateField: function validateField(form, field, value, validators) {
+    validateField: function validateField(form, field, value) {
+      var validators = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
+
       //console.log(form, field, value, validators);
       if (validators.length) {
         dispatch((0, _FormActions.validateField)(form, field, value, validators));
