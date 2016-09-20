@@ -9,7 +9,7 @@ class Form extends React.Component {
   handleSubmit(event) {
     if (this.props.onSubmit && !this.props.hasErrors) {
       return this.props.onSubmit(event, this.props.formData);
-  }
+    }
     event.preventDefault();
     return false;
   }

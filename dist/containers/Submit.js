@@ -38,6 +38,8 @@ var Submit = function (_React$Component) {
     key: 'handleSubmit',
     value: function handleSubmit(event) {
       if (this.props.isLoading || this.props.isDisabled) {
+        event.preventDefault();
+        event.stopPropagation();
         return false;
       }
     }
@@ -46,20 +48,9 @@ var Submit = function (_React$Component) {
     value: function render() {
       return _react2.default.createElement(
         'button',
-        { className: this.props.className, onClick: this.handleSubmit },
-        this.renderLabel()
+        { className: this.props.className + (this.props.isDisabled || this.props.isLoading ? ' disabled' : ''), onClick: this.handleSubmit },
+        this.props.label
       );
-    }
-  }, {
-    key: 'renderLabel',
-    value: function renderLabel() {
-      if (this.props.isLoading) {
-        return this.props.labelLoading;
-      } else if (this.props.isDisabled) {
-        return this.props.labelDisabled;
-      } else {
-        return this.props.label;
-      }
     }
   }]);
 
@@ -71,18 +62,19 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var form = state.form[formName];
   var hasErrors = form && form.errors && Object.keys(form.errors).length;
 
-  var label = ownProps.label || 'Send';
-  var labelLoading = ownProps.labelLoading || 'Loading...';
-  var labelDisabled = ownProps.labelDisabled || label;
-
+  var label = ownProps.label || 'Submit';
   var isLoading = form && form.loading;
+
+  if (isLoading) {
+    label = ownProps.labelLoading || 'Loading...';
+  } else if (hasErrors && ownProps.labelDisabled) {
+    label = ownProps.labelDisabled;
+  }
 
   return {
     isDisabled: hasErrors,
     isLoading: isLoading,
-    label: label,
-    labelLoading: labelLoading,
-    labelDisabled: labelDisabled
+    label: label
   };
 };
 

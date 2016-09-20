@@ -12,26 +12,18 @@ class Submit extends React.Component {
 
   handleSubmit(event) {
     if (this.props.isLoading || this.props.isDisabled) {
+      event.preventDefault();
+      event.stopPropagation();
       return false;
     }
   }
 
   render() {
     return (
-      <button className={this.props.className} onClick={this.handleSubmit}>
-        {this.renderLabel()}
+      <button className={this.props.className + (this.props.isDisabled || this.props.isLoading ? ' disabled' : '')} onClick={this.handleSubmit}>
+        {this.props.label}
       </button>
     );
-  }
-
-  renderLabel() {
-    if (this.props.isLoading) {
-      return this.props.labelLoading;
-    } else if (this.props.isDisabled) {
-      return this.props.labelDisabled;
-    } else {
-      return this.props.label;
-    }
   }
 }
 
@@ -40,18 +32,20 @@ const mapStateToProps = (state, ownProps) => {
   const form = state.form[formName];
   const hasErrors = (form && form.errors && Object.keys(form.errors).length);
 
-  const label = ownProps.label || 'Send';
-  const labelLoading = ownProps.labelLoading || 'Loading...';
-  const labelDisabled = ownProps.labelDisabled || label;
-
+  let label = ownProps.label || 'Submit';
   const isLoading = (form && form.loading);
+
+  if (isLoading) {
+    label = ownProps.labelLoading || 'Loading...';
+  } else if (hasErrors && ownProps.labelDisabled) {
+    label = ownProps.labelDisabled;
+  }
+
 
   return {
     isDisabled: hasErrors,
     isLoading,
     label,
-    labelLoading,
-    labelDisabled,
   };
 };
 
