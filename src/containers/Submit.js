@@ -11,21 +11,27 @@ class Submit extends React.Component {
   }
 
   handleSubmit(event) {
-    if (this.props.isLoading || this.props.isDisabled) {
-      event.preventDefault();
-      event.stopPropagation();
-      return false;
+    if (!this.props.onClick || !this.props.onClick.call(this, event)) {
+      if (this.props.isLoading || this.props.isDisabled) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+      }
     }
   }
 
   render() {
     return (
-      <button className={this.props.className + (this.props.isDisabled || this.props.isLoading ? ' disabled' : '')} onClick={this.handleSubmit}>
+      <button className={this.props.className + (this.props.isDisabled || this.props.isLoading ? ' disabled' : '')} onClick={this.handleSubmit.bind(this)}>
         {this.props.label}
       </button>
     );
   }
 }
+
+Submit.propTypes = {
+  formName: React.PropTypes.string.isRequired,
+};
 
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
@@ -40,7 +46,6 @@ const mapStateToProps = (state, ownProps) => {
   } else if (hasErrors && ownProps.labelDisabled) {
     label = ownProps.labelDisabled;
   }
-
 
   return {
     isDisabled: hasErrors,

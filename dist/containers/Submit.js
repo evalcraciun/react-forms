@@ -37,10 +37,12 @@ var Submit = function (_React$Component) {
   _createClass(Submit, [{
     key: 'handleSubmit',
     value: function handleSubmit(event) {
-      if (this.props.isLoading || this.props.isDisabled) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
+      if (!this.props.onClick || !this.props.onClick.call(this, event)) {
+        if (this.props.isLoading || this.props.isDisabled) {
+          event.preventDefault();
+          event.stopPropagation();
+          return false;
+        }
       }
     }
   }, {
@@ -48,7 +50,7 @@ var Submit = function (_React$Component) {
     value: function render() {
       return _react2.default.createElement(
         'button',
-        { className: this.props.className + (this.props.isDisabled || this.props.isLoading ? ' disabled' : ''), onClick: this.handleSubmit },
+        { className: this.props.className + (this.props.isDisabled || this.props.isLoading ? ' disabled' : ''), onClick: this.handleSubmit.bind(this) },
         this.props.label
       );
     }
@@ -56,6 +58,10 @@ var Submit = function (_React$Component) {
 
   return Submit;
 }(_react2.default.Component);
+
+Submit.propTypes = {
+  formName: _react2.default.PropTypes.string.isRequired
+};
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;

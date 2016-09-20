@@ -66,4 +66,9 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   };
 };
 
+FieldError.propTypes = {
+  fieldName: _react2.default.PropTypes.string.isRequired,
+  formName: _react2.default.PropTypes.string.isRequired
+};
+
 exports.default = (0, _reactRedux.connect)(mapStateToProps)(FieldError);

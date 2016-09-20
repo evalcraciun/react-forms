@@ -69,9 +69,7 @@ var Form = function (_React$Component) {
 }(_react2.default.Component);
 
 Form.propTypes = {
-  formName: _react2.default.PropTypes.string,
-  formFields: _react2.default.PropTypes.object,
-  formErrors: _react2.default.PropTypes.object
+  formName: _react2.default.PropTypes.string.isRequired
 };
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {

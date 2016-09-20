@@ -28,4 +28,9 @@ const mapStateToProps = (state, ownProps) => {
   }
 };
 
+FieldError.propTypes = {
+  fieldName: React.PropTypes.string.isRequired,
+  formName: React.PropTypes.string.isRequired,
+};
+
 export default connect(mapStateToProps)(FieldError);

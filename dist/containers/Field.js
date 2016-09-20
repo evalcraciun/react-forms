@@ -34,6 +34,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var elementTypesOnChangeValidation = ['select'];
+
 var Field = function (_React$Component) {
   _inherits(Field, _React$Component);
 
@@ -51,6 +53,8 @@ var Field = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
       var classNames = ['formField'];
 
       if (this.props.hasErrors) {
@@ -64,96 +68,56 @@ var Field = function (_React$Component) {
       return _react2.default.createElement(
         'div',
         { className: classNames.join(' ') },
-        this.renderChildren(this.props)
+        _react2.default.Children.map(this.props.children, function (child) {
+          return _this2.injectChild(child);
+        })
       );
     }
-
-    /**
-     * Binds Eventhandlers and props to native HTML elements
-     *
-     * @param props
-     * @returns {*}
-     */
-
   }, {
-    key: 'renderChildren',
-    value: function renderChildren(props) {
-      var _this2 = this;
+    key: 'injectChild',
+    value: function injectChild(element) {
+      var _this3 = this;
 
-      return _react2.default.Children.map(props.children, function (child) {
-        switch (child.type) {
-          case 'input':
-            {
-              switch (child.props.type.toString().toLowerCase()) {
-                case 'checkbox':
-                  return _react2.default.cloneElement(child, {
-                    onChange: function onChange(event) {
-                      var value = !!event.target.checked;
-                      var field = event.target.name;
+      var elementType = element.type;
 
-                      _this2.changeField(field, value);
-                      _this2.validateField();
-                      _this2.clearErrors();
-                    },
-                    checked: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
-                  });
-                case 'radio':
-                  return _react2.default.cloneElement(child, {
-                    onChange: function onChange(event) {
-                      var field = event.target.name;
-                      var value = document.querySelector('input[name="' + field + '"]:checked').value;
+      var keyName = _lodash2.default.get(element, 'props.name', null);
+      var isObjValue = _lodash2.default.isObject(this.props.fieldValue);
 
-                      _this2.changeField(field, value);
-                      _this2.validateField();
-                      _this2.clearErrors();
-                    },
-                    checked: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
-                  });
-                default:
-                  return _react2.default.cloneElement(child, {
-                    onChange: function onChange(event) {
-                      var value = event.target.value;
-                      var field = event.target.name;
+      // set the initial value depending on whether the fields value is an object or not
+      var initialValue = null;
+      if (isObjValue && !keyName) {
+        initialValue = null;
+        console.warn('missing input name for a value structure that is an object');
+      } else {
+        initialValue = isObjValue ? this.props.fieldValue[keyName] : this.props.fieldValue;
+      }
 
-                      _this2.changeField(field, value);
-                      _this2.clearErrors();
-                    },
-                    onBlur: function onBlur(event) {
-                      _this2.validateField();
-                    },
-                    value: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
-                  });
-              }
-            }
-          case 'select':
-            {
-              return _react2.default.cloneElement(child, {
-                onChange: function onChange(event) {
-                  var value = event.target.value;
-                  var field = event.target.name;
+      var cloneProps = {};
+      cloneProps.value = initialValue;
 
-                  _this2.changeField(field, value);
-                  _this2.validateField();
-                  _this2.clearErrors();
-                },
-                selected: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
-              });
-            }
-          default:
-            return _react2.default.cloneElement(child, {
-              onChange: function onChange(event, value) {
-                var field = event.target.name;
+      if (elementType in elementTypesOnChangeValidation) {
+        cloneProps.onChange = function (event, value) {
+          if (typeof value === 'undefined') {
+            value = event.target.value;
+          }
 
-                _this2.changeField(field, value);
-                _this2.validateField();
-                _this2.clearErrors();
-              },
-              value: _this2.getFieldValue(_lodash2.default.get(child, 'props.name', null))
-            });
+          _this3.changeField(event.target.name, value);
+          _this3.validateField();
+        };
+      } else {
+        cloneProps.onChange = function (event, value) {
+          if (typeof value === 'undefined') {
+            value = event.target.value;
+          }
 
-            return child;
-        }
-      });
+          _this3.changeField(event.target.name, value);
+        };
+        cloneProps.onBlur = function () {
+          _this3.validateField();
+        };
+      }
+
+      return _react2.default.cloneElement(element, _extends({}, cloneProps));
     }
   }, {
     key: 'changeField',
@@ -175,10 +139,7 @@ var Field = function (_React$Component) {
   }, {
     key: 'validateField',
     value: function validateField() {
-      var formName = this.props.formName;
-      var fieldName = this.props.fieldName;
-      var validators = this.props.validators;
-      this.props.validateField(formName, fieldName, this.props.fieldValue, validators);
+      this.props.validateField(this.props.formName, this.props.fieldName, this.props.fieldValue, this.props.validators);
     }
   }, {
     key: 'clearErrors',
@@ -194,6 +155,11 @@ var Field = function (_React$Component) {
 
   return Field;
 }(_react2.default.Component);
+
+Field.propTypes = {
+  fieldName: _react2.default.PropTypes.string.isRequired,
+  formName: _react2.default.PropTypes.string.isRequired
+};
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;

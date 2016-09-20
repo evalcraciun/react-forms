@@ -32,9 +32,7 @@ class Form extends React.Component {
 }
 
 Form.propTypes = {
-  formName: React.PropTypes.string,
-  formFields: React.PropTypes.object,
-  formErrors: React.PropTypes.object,
+  formName: React.PropTypes.string.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => {

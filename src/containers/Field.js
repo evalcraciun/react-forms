@@ -6,6 +6,8 @@ import FieldError from './FieldError';
 import { acChangeField, validateField, acClearValidation } from '../actions/FormActions';
 import _ from 'lodash';
 
+const elementTypesOnChangeValidation = ['select'];
+
 class Field extends React.Component {
   constructor() {
     super();
@@ -30,90 +32,54 @@ class Field extends React.Component {
 
     return (
       <div className={classNames.join(' ')}>
-        {this.renderChildren(this.props)}
+        {React.Children.map(this.props.children, child => this.injectChild(child))}
       </div>
     )
   }
 
-  /**
-   * Binds Eventhandlers and props to native HTML elements
-   *
-   * @param props
-   * @returns {*}
-   */
-  renderChildren(props) {
-    return React.Children.map(props.children, child => {
-      switch (child.type) {
-        case 'input': {
-          switch (child.props.type.toString().toLowerCase()) {
-            case 'checkbox':
-              return React.cloneElement(child, {
-                onChange: (event) => {
-                  const value = !!event.target.checked;
-                  const field = event.target.name;
+  injectChild(element) {
+    const elementType = element.type;
 
-                  this.changeField(field, value);
-                  this.validateField();
-                  this.clearErrors();
-                },
-                checked: this.getFieldValue(_.get(child, 'props.name', null))
-              });
-            case 'radio':
-              return React.cloneElement(child, {
-                onChange: (event) => {
-                  const field = event.target.name;
-                  const value = document.querySelector(`input[name="${field}"]:checked`).value;
+    const keyName = _.get(element, 'props.name', null);
+    const isObjValue = _.isObject(this.props.fieldValue);
 
-                  this.changeField(field, value);
-                  this.validateField();
-                  this.clearErrors();
-                },
-                checked: this.getFieldValue(_.get(child, 'props.name', null))
-              });
-            default:
-              return React.cloneElement(child, {
-                onChange: (event) => {
-                  const value = event.target.value;
-                  const field = event.target.name;
+    // set the initial value depending on whether the fields value is an object or not
+    let initialValue = null;
+    if (isObjValue && !keyName) {
+      initialValue = null;
+      console.warn('missing input name for a value structure that is an object');
+    } else {
+      initialValue = isObjValue ? this.props.fieldValue[keyName] : this.props.fieldValue;
+    }
 
-                  this.changeField(field, value);
-                  this.clearErrors();
-                },
-                onBlur: (event) => {
-                  this.validateField();
-                },
-                value: this.getFieldValue(_.get(child, 'props.name', null))
-              });
-          }
+    let cloneProps = {};
+    cloneProps.value = initialValue;
+
+    if (elementType in elementTypesOnChangeValidation) {
+      cloneProps.onChange = (event, value) => {
+        if (typeof value === 'undefined') {
+          value = event.target.value;
         }
-        case 'select': {
-          return React.cloneElement(child, {
-            onChange: (event) => {
-              const value = event.target.value;
-              const field = event.target.name;
 
-              this.changeField(field, value);
-              this.validateField();
-              this.clearErrors();
-            },
-            selected: this.getFieldValue(_.get(child, 'props.name', null))
-          });
+        this.changeField(event.target.name, value);
+        this.validateField();
+      };
+    } else {
+      cloneProps.onChange = (event, value) => {
+        if (typeof value === 'undefined') {
+          value = event.target.value;
         }
-        default:
-          return React.cloneElement(child, {
-            onChange: (event, value) => {
-              const field = event.target.name;
 
-              this.changeField(field, value);
-              this.validateField();
-              this.clearErrors();
-            },
-            value: this.getFieldValue(_.get(child, 'props.name', null))
-          });
-
-          return child;
+        this.changeField(event.target.name, value);
+      };
+      cloneProps.onBlur = () => {
+        this.validateField();
       }
-    });
+    }
+
+    return React.cloneElement(element, {
+      ...cloneProps,
+    })
   }
 
   changeField(key, value) {
@@ -135,10 +101,12 @@ class Field extends React.Component {
   }
 
   validateField() {
-    const formName = this.props.formName;
-    const fieldName = this.props.fieldName;
-    const validators = this.props.validators;
-    this.props.validateField(formName, fieldName, this.props.fieldValue, validators);
+    this.props.validateField(
+      this.props.formName,
+      this.props.fieldName,
+      this.props.fieldValue,
+      this.props.validators
+    );
   }
 
   clearErrors() {
@@ -150,6 +118,11 @@ class Field extends React.Component {
     }
   }
 }
+
+Field.propTypes = {
+  fieldName: React.PropTypes.string.isRequired,
+  formName: React.PropTypes.string.isRequired,
+};
 
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
