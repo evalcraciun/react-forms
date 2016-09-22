@@ -62,7 +62,7 @@ class Field extends React.Component {
     let cloneProps = {};
     cloneProps.value = initialValue;
 
-    const processFunc = _.get(element, 'props.data-process-func', (event, value) => value);
+    const processFunc = _.get(element, 'props.processFunc', (event, value) => value);
 
     cloneProps.onChange = (event, value) => {
       if (typeof value === 'undefined') {
@@ -134,6 +134,8 @@ class Field extends React.Component {
 Field.propTypes = {
   fieldName: React.PropTypes.string.isRequired,
   formName: React.PropTypes.string.isRequired,
+  processFunc: React.PropTypes.func,
+  validators: React.PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => {

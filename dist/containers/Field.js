@@ -108,7 +108,7 @@ var Field = function (_React$Component) {
       var cloneProps = {};
       cloneProps.value = initialValue;
 
-      var processFunc = _lodash2.default.get(element, 'props.data-process-func', function (event, value) {
+      var processFunc = _lodash2.default.get(element, 'props.processFunc', function (event, value) {
         return value;
       });
 
@@ -179,7 +179,9 @@ var Field = function (_React$Component) {
 
 Field.propTypes = {
   fieldName: _react2.default.PropTypes.string.isRequired,
-  formName: _react2.default.PropTypes.string.isRequired
+  formName: _react2.default.PropTypes.string.isRequired,
+  processFunc: _react2.default.PropTypes.func,
+  validators: _react2.default.PropTypes.array
 };
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
