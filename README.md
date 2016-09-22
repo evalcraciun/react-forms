@@ -26,11 +26,8 @@ This Package provides Containers to work with forms.
 * `onChange` - must be called in custom components with `this.props.onChange(event, data)`
   * if `data` is undefined, the Field component will try to use `event.target.value` (so this works with almost every native input out of the box)
 * `processFunc` - gets called with the same signature as onChange, but the returned value will be used to store the data
-  * example:
-    ```jsx
-      <input type="text" name="firstName" processFunc={(event, value) => value.toUpperCase()} />
-    ```
-  * `processFunc` also works with promises, and will change the value in the state once the promise resolves
+  * example: `<input type="text" name="firstName" processFunc={(event, value) => value.toUpperCase()} />`
+  * also works with promises, and will change the value in the state once the promise resolves
 * `validators` - array of validators from `FormValidators` which will be applied to the field onChange or onBlur depending on the input type
 
 
