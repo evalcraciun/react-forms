@@ -1,6 +1,6 @@
 # Luvago React Forms
 
-This Package provides Containers to work with forms.
+This package provides containers to work with forms, inputs, and custom input-components.
 
 ```jsx
 <Form formName="test-form">
