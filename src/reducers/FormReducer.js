@@ -1,5 +1,6 @@
-import { INIT_FORM, CHANGE_FIELD, CLEAR_FORM, ATTACH_META, VALIDATION_ERROR, SET_LOADING, CLEAR_VALIDATION_ERROR } from '../actions/FormActions'
+import { INIT_FORM, INIT_FIELD, CHANGE_FIELD, CLEAR_FORM, ATTACH_META, ATTACH_FIELD_META, VALIDATION_ERROR, SET_LOADING, SET_SUBMITTING, CLEAR_VALIDATION_ERROR } from '../actions/FormActions'
 
+import _ from 'lodash';
 
 const initialState = {}
 
@@ -10,18 +11,32 @@ const formReducer = (state = initialState, action) => {
 		// 		...action.payload.form
 		// 	}
 		// }
-		case INIT_FORM: {
-			return {
-				...state,
-				[action.name] : {
-					fields: {
-						...action.initialFields
-					},
-					changed: false,
-          loading: false,
-				}
-			}
-		}
+    case INIT_FIELD: {
+      const form = state[action.form] ? state[action.form] : {
+        errors: {},
+        fields: {},
+        meta: {},
+        changed: true,
+        loading: false,
+        submitting: false,
+      };
+      const fields = state[action.form] && state[action.form].fields ? state[action.form].fields : {};
+
+      return {
+        ...state,
+        [action.form] : {
+          ...form,
+          fields: {
+            ...fields,
+            [action.field]: {
+              value: action.defaultValue,
+              validated: false,
+              meta: {},
+            }
+          }
+        }
+      }
+    }
 		case CHANGE_FIELD: {
 			let fields = state[action.form].fields
 			return {
@@ -31,7 +46,11 @@ const formReducer = (state = initialState, action) => {
 					changed : true,
 					fields: {
 						...fields,
-						[action.field] : action.value
+						[action.field] : {
+              ...fields[action.field],
+              value: action.value,
+              validated: false,
+            }
 					}
 				}
 			}
@@ -45,6 +64,21 @@ const formReducer = (state = initialState, action) => {
 				}
 			}
 		}
+    case ATTACH_FIELD_META: {
+      return {
+        ...state,
+        [action.form] : {
+          ...state[action.form],
+          fields: {
+            ...state[action.form].fields,
+            [action.field]: {
+              ...state[action.form].fields[action.field],
+              meta: action.meta
+            }
+          }
+        }
+      }
+    }
 		case VALIDATION_ERROR: {
 			return {
 				...state,
@@ -52,8 +86,15 @@ const formReducer = (state = initialState, action) => {
 					...state[action.form],
 					errors: {
 						...state[action.form].errors,
-						[action.field] : action.errors
-					}
+						[action.field] : action.errors,
+					},
+          fields: {
+            ...state[action.form].fields,
+            [action.field]: {
+              ...state[action.form].fields[action.field],
+              validated: true
+            }
+          }
 				}
 			}
 		}
@@ -66,13 +107,35 @@ const formReducer = (state = initialState, action) => {
         }
       }
     }
+    case SET_SUBMITTING: {
+      return {
+        ...state,
+        [action.form]: {
+          ...state[action.form],
+          submitting: !!action.submitting,
+        }
+      }
+    }
 		case CLEAR_VALIDATION_ERROR: {
-		  const { [action.field]: removed, ...newErrors} = state[action.form].errors;
-			return {
+		  let newErrors;
+		  if (action.field in state[action.form].errors) {
+        let { [action.field]: removed, ...newErrors} = state[action.form].errors;
+      } else {
+        newErrors = state[action.form].errors;
+      }
+
+		  return {
 				...state,
 				[action.form] : {
 					...state[action.form],
-					errors: newErrors
+					errors: newErrors,
+          fields: {
+            ...state[action.form].fields,
+            [action.field]: {
+              ...state[action.form].fields[action.field],
+              validated: true
+            }
+          }
 				}
 			}
 		}

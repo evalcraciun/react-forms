@@ -3,14 +3,14 @@ import { connect } from 'react-redux';
 
 import FieldError from './FieldError';
 
-import { acChangeField, validateField, acClearValidation } from '../actions/FormActions';
+import { acChangeField, validateField, acClearValidation, acInitField } from '../actions/FormActions';
 import _ from 'lodash';
 
 const elementTypesOnChangeValidation = ['select'];
 
 class Field extends React.Component {
-  constructor() {
-    super();
+  componentDidMount() {
+    this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
   }
 
   getFieldValue(key) {
@@ -37,11 +37,18 @@ class Field extends React.Component {
     )
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.isSubmitting && !nextProps.isValidated) {
+      console.log(nextProps.isValidated);
+      this.validateField();
+    }
+  }
+
   injectChild(element) {
     const elementType = element.type;
 
     const keyName = _.get(element, 'props.name', null);
-    const isObjValue = _.isObject(this.props.fieldValue);
+    const isObjValue = _.isObject(this.props.fieldValue) && this.props.fieldValue.constructor === Object;
 
     // set the initial value depending on whether the fields value is an object or not
     let initialValue = null;
@@ -55,27 +62,21 @@ class Field extends React.Component {
     let cloneProps = {};
     cloneProps.value = initialValue;
 
-    if (elementType in elementTypesOnChangeValidation) {
-      cloneProps.onChange = (event, value) => {
-        if (typeof value === 'undefined') {
-          value = event.target.value;
-        }
+    const processFunc = _.get(element, 'props.data-process-func', (event, value) => value);
 
-        this.changeField(event.target.name, value);
-        this.validateField();
-      };
-    } else {
-      cloneProps.onChange = (event, value) => {
-        if (typeof value === 'undefined') {
-          value = event.target.value;
-        }
+    cloneProps.onChange = (event, value) => {
+      if (typeof value === 'undefined') {
+        value = event.target.value;
+      }
 
-        this.changeField(event.target.name, value);
-      };
-      cloneProps.onBlur = () => {
+      this.changeField(event.target.name, processFunc(event, value));
+      if (elementType in elementTypesOnChangeValidation) {
         this.validateField();
       }
-    }
+    };
+    cloneProps.onBlur = () => {
+      this.validateField();
+    };
 
     return React.cloneElement(element, {
       ...cloneProps,
@@ -83,21 +84,32 @@ class Field extends React.Component {
   }
 
   changeField(key, value) {
-    let newValue;
-
-    if (key) {
-      newValue = {
-        ...this.props.fieldValue,
-      };
-
-      _.set(newValue, key, value);
+    // TODO: this is called a lot, generating resolve-promises for simple values maybe isn't such a good idea
+    let promise;
+    if (typeof value === 'function') {
+      promise = value;
     } else {
-      newValue = value;
+      promise = Promise.resolve(value);
     }
 
-    const formName = this.props.formName;
-    const fieldName = this.props.fieldName;
-    this.props.changeField(formName, fieldName, newValue);
+    promise
+      .then(value => {
+        let newValue;
+
+        if (key) {
+          newValue = {
+            ...this.props.fieldValue,
+          };
+
+          _.set(newValue, key, value);
+        } else {
+          newValue = value;
+        }
+
+        const formName = this.props.formName;
+        const fieldName = this.props.fieldName;
+        this.props.changeField(formName, fieldName, newValue);
+      });
   }
 
   validateField() {
@@ -127,13 +139,7 @@ Field.propTypes = {
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
   const fieldName = ownProps.fieldName;
-  let fieldValue = '';
-
-  if (state.form[formName] &&
-    state.form[formName].fields &&
-    state.form[formName].fields[ownProps.fieldName]) {
-    fieldValue = state.form[formName].fields[ownProps.fieldName];
-  }
+  const fieldValue = _.get(state, `form.${formName}.fields.${ownProps.fieldName}.value`);
 
   const fieldErrors = (state.form[formName] &&
     state.form[formName].errors &&
@@ -141,26 +147,33 @@ const mapStateToProps = (state, ownProps) => {
     state.form[formName].errors[fieldName].length) ? state.form[formName].errors[fieldName] : [];
 
   const hasErrors = fieldErrors.length;
+  const defaultValue = ownProps.defaultValue || '';
+
+  const isValidated = _.get(state, `form.${formName}.fields.${ownProps.fieldName}.validated`, false);
+  const isSubmitting = _.get(state, `form.${formName}.submitting`, false);
 
   return {
     validators: ownProps.validators,
     fieldName,
+    defaultValue,
     fieldValue,
     fieldErrors,
     hasErrors,
+    isValidated,
+    isSubmitting,
   }
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
+    initField: (form, field, defaultValue) => {
+      dispatch(acInitField(form, field, defaultValue));
+    },
     validateField: (form, field, value, validators = []) => {
       //console.log(form, field, value, validators);
-      if (validators.length) {
-        dispatch(validateField(form, field, value, validators));
-      }
+      dispatch(validateField(form, field, value, validators));
     },
     changeField: (form, field, value) => {
-      //console.log(form, field, value);
       dispatch(acChangeField(form, field, value));
     },
     clearValidation: (form, field) => {

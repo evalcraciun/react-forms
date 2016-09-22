@@ -14,11 +14,10 @@ var acChangeField = exports.acChangeField = function acChangeField(form, field, 
 };
 
 var INIT_FORM = exports.INIT_FORM = 'INIT_FORM';
-var acInitForm = exports.acInitForm = function acInitForm(name, initialFields) {
+var acInitForm = exports.acInitForm = function acInitForm(name) {
   return {
     type: INIT_FORM,
-    name: name,
-    initialFields: initialFields
+    name: name
   };
 };
 
@@ -50,6 +49,16 @@ var acAttachMeta = exports.acAttachMeta = function acAttachMeta(form, meta) {
   };
 };
 
+var ATTACH_FIELD_META = exports.ATTACH_FIELD_META = 'ATTACH_FIELD_META';
+var acAttachFieldMeta = exports.acAttachFieldMeta = function acAttachFieldMeta(form, field, meta) {
+  return {
+    type: ATTACH_FIELD_META,
+    form: form,
+    field: field,
+    meta: meta
+  };
+};
+
 var CLEAR_FORM = exports.CLEAR_FORM = 'CLEAR_FORM';
 var acClearForm = exports.acClearForm = function acClearForm(name) {
   return {
@@ -64,6 +73,25 @@ var acSetLoading = exports.acSetLoading = function acSetLoading(form, loading) {
     type: SET_LOADING,
     form: form,
     loading: loading
+  };
+};
+
+var SET_SUBMITTING = exports.SET_SUBMITTING = 'SET_SUBMITTING';
+var acSetSubmitting = exports.acSetSubmitting = function acSetSubmitting(form, submitting) {
+  return {
+    type: SET_SUBMITTING,
+    form: form,
+    submitting: submitting
+  };
+};
+
+var INIT_FIELD = exports.INIT_FIELD = 'INIT_FIELD';
+var acInitField = exports.acInitField = function acInitField(form, field, defaultValue) {
+  return {
+    type: INIT_FIELD,
+    form: form,
+    field: field,
+    defaultValue: defaultValue
   };
 };
 
@@ -87,9 +115,7 @@ var validateField = exports.validateField = function validateField(form, field, 
     if (errors.length > 0) {
       return dispatch(acValidationError(form, field, errors));
     } else {
-      if (getState().form[form].errors && getState().form[form].errors[field]) {
-        return dispatch(acClearValidation(form, field));
-      }
+      return dispatch(acClearValidation(form, field));
     }
   };
 };

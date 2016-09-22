@@ -9,11 +9,10 @@ export const acChangeField = (form, field, value) => {
 };
 
 export const INIT_FORM = 'INIT_FORM';
-export const acInitForm = (name, initialFields) => {
+export const acInitForm = (name) => {
   return {
     type: INIT_FORM,
-    name,
-    initialFields
+    name
   }
 };
 
@@ -45,6 +44,16 @@ export const acAttachMeta = (form, meta) => {
   }
 };
 
+export const ATTACH_FIELD_META = 'ATTACH_FIELD_META';
+export const acAttachFieldMeta = (form, field, meta) => {
+  return {
+    type: ATTACH_FIELD_META,
+    form,
+    field,
+    meta,
+  }
+};
+
 
 export const CLEAR_FORM = 'CLEAR_FORM';
 export const acClearForm = (name) => {
@@ -62,6 +71,25 @@ export const acSetLoading = (form, loading) => {
     loading,
   }
 };
+
+export const SET_SUBMITTING = 'SET_SUBMITTING';
+export const acSetSubmitting = (form, submitting) => {
+  return {
+    type: SET_SUBMITTING,
+    form,
+    submitting,
+  }
+}
+
+export const INIT_FIELD = 'INIT_FIELD';
+export const acInitField = (form, field, defaultValue) => {
+  return {
+    type: INIT_FIELD,
+    form,
+    field,
+    defaultValue
+  }
+}
 
 export const initForm = (name, initialFields, id) => {
   return (dispatch, getState) => {
@@ -83,9 +111,7 @@ export const validateField = (form, field, value, validators) => {
     if (errors.length>0) {
       return dispatch(acValidationError(form, field, errors))
     } else {
-      if ((getState().form[form].errors) && (getState().form[form].errors[field])) {
-        return dispatch(acClearValidation(form, field))
-      }
+      return dispatch(acClearValidation(form, field));
     }
   }
 };

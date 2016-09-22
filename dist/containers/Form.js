@@ -12,6 +12,10 @@ var _react2 = _interopRequireDefault(_react);
 
 var _reactRedux = require('react-redux');
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _Field = require('./Field');
 
 var _Field2 = _interopRequireDefault(_Field);
@@ -38,21 +42,50 @@ var Form = function (_React$Component) {
   _createClass(Form, [{
     key: 'handleSubmit',
     value: function handleSubmit(event) {
-      if (this.props.onSubmit && !this.props.hasErrors) {
-        return this.props.onSubmit(event, this.props.formData);
-      }
+      this.props.setSubmitting(true);
       event.preventDefault();
       return false;
     }
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      this.props.initForm(this.props.initialData || {});
+      this.props.initForm();
     }
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
       this.props.clearForm();
+    }
+  }, {
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(nextProps) {
+      if (nextProps.isSubmitting) {
+        // can't submit when there's errors
+        //console.log("hasErrors?", !!nextProps.hasErrors);
+        if (!nextProps.hasErrors) {
+          var allFieldsValidated = true;
+
+          // can't submit when there's unvalidated fields
+          Object.keys(nextProps.formFields).forEach(function (fieldName) {
+            var field = nextProps.formFields[fieldName];
+            if (!field.validated) {
+              allFieldsValidated = false;
+            }
+          });
+
+          //console.log("validated fields?", allFieldsValidated);
+
+          if (allFieldsValidated) {
+            // no errors, all fields validated, call submit
+            this.props.setSubmitting(false);
+            this.props.onSubmit(nextProps.formValues);
+          }
+        }
+      }
+      /*if (this.props.onSubmit && !this.props.hasErrors) {
+       return this.props.onSubmit(event, this.props.formData);
+       }
+      */
     }
   }, {
     key: 'render',
@@ -76,26 +109,32 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;
 
   var stateForm = state.form[formName];
-  var initialData = ownProps.initialData || {};
+  var formFields = stateForm ? stateForm.fields : {};
+  var formValues = _lodash2.default.mapValues(formFields, function (field) {
+    return field.value;
+  });
 
   var hasErrors = stateForm && stateForm.errors && Object.keys(stateForm.errors).length;
   var isLoading = stateForm && stateForm.loading;
-
-  var formData = stateForm ? stateForm.fields : initialData;
+  var isSubmitting = stateForm && stateForm.submitting;
 
   return {
     hasErrors: hasErrors,
     isLoading: isLoading,
-    initialData: initialData,
-    formData: formData
+    isSubmitting: isSubmitting,
+    formFields: formFields,
+    formValues: formValues
   };
 };
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch, getState) {
   var formName = getState.formName;
   return {
-    initForm: function initForm(fields) {
-      dispatch((0, _FormActions.initForm)(formName, fields));
+    initForm: function initForm() {
+      dispatch((0, _FormActions.initForm)(formName));
+    },
+    setSubmitting: function setSubmitting(bool) {
+      dispatch((0, _FormActions.acSetSubmitting)(formName, bool));
     },
     clearForm: function clearForm() {
       dispatch((0, _FormActions.acClearForm)(formName));

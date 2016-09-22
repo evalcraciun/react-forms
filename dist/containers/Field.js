@@ -42,10 +42,15 @@ var Field = function (_React$Component) {
   function Field() {
     _classCallCheck(this, Field);
 
-    return _possibleConstructorReturn(this, (Field.__proto__ || Object.getPrototypeOf(Field)).call(this));
+    return _possibleConstructorReturn(this, (Field.__proto__ || Object.getPrototypeOf(Field)).apply(this, arguments));
   }
 
   _createClass(Field, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
+    }
+  }, {
     key: 'getFieldValue',
     value: function getFieldValue(key) {
       return _lodash2.default.isObject(this.props.fieldValue) ? _lodash2.default.get(this.props.fieldValue, key, '') : this.props.fieldValue;
@@ -74,6 +79,14 @@ var Field = function (_React$Component) {
       );
     }
   }, {
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(nextProps) {
+      if (nextProps.isSubmitting && !nextProps.isValidated) {
+        console.log(nextProps.isValidated);
+        this.validateField();
+      }
+    }
+  }, {
     key: 'injectChild',
     value: function injectChild(element) {
       var _this3 = this;
@@ -81,7 +94,7 @@ var Field = function (_React$Component) {
       var elementType = element.type;
 
       var keyName = _lodash2.default.get(element, 'props.name', null);
-      var isObjValue = _lodash2.default.isObject(this.props.fieldValue);
+      var isObjValue = _lodash2.default.isObject(this.props.fieldValue) && this.props.fieldValue.constructor === Object;
 
       // set the initial value depending on whether the fields value is an object or not
       var initialValue = null;
@@ -95,46 +108,54 @@ var Field = function (_React$Component) {
       var cloneProps = {};
       cloneProps.value = initialValue;
 
-      if (elementType in elementTypesOnChangeValidation) {
-        cloneProps.onChange = function (event, value) {
-          if (typeof value === 'undefined') {
-            value = event.target.value;
-          }
+      var processFunc = _lodash2.default.get(element, 'props.data-process-func', function (event, value) {
+        return value;
+      });
 
-          _this3.changeField(event.target.name, value);
-          _this3.validateField();
-        };
-      } else {
-        cloneProps.onChange = function (event, value) {
-          if (typeof value === 'undefined') {
-            value = event.target.value;
-          }
+      cloneProps.onChange = function (event, value) {
+        if (typeof value === 'undefined') {
+          value = event.target.value;
+        }
 
-          _this3.changeField(event.target.name, value);
-        };
-        cloneProps.onBlur = function () {
+        _this3.changeField(event.target.name, processFunc(event, value));
+        if (elementType in elementTypesOnChangeValidation) {
           _this3.validateField();
-        };
-      }
+        }
+      };
+      cloneProps.onBlur = function () {
+        _this3.validateField();
+      };
 
       return _react2.default.cloneElement(element, _extends({}, cloneProps));
     }
   }, {
     key: 'changeField',
     value: function changeField(key, value) {
-      var newValue = void 0;
+      var _this4 = this;
 
-      if (key) {
-        newValue = _extends({}, this.props.fieldValue);
-
-        _lodash2.default.set(newValue, key, value);
+      // TODO: this is called a lot, generating resolve-promises for simple values maybe isn't such a good idea
+      var promise = void 0;
+      if (typeof value === 'function') {
+        promise = value;
       } else {
-        newValue = value;
+        promise = Promise.resolve(value);
       }
 
-      var formName = this.props.formName;
-      var fieldName = this.props.fieldName;
-      this.props.changeField(formName, fieldName, newValue);
+      promise.then(function (value) {
+        var newValue = void 0;
+
+        if (key) {
+          newValue = _extends({}, _this4.props.fieldValue);
+
+          _lodash2.default.set(newValue, key, value);
+        } else {
+          newValue = value;
+        }
+
+        var formName = _this4.props.formName;
+        var fieldName = _this4.props.fieldName;
+        _this4.props.changeField(formName, fieldName, newValue);
+      });
     }
   }, {
     key: 'validateField',
@@ -164,37 +185,40 @@ Field.propTypes = {
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;
   var fieldName = ownProps.fieldName;
-  var fieldValue = '';
-
-  if (state.form[formName] && state.form[formName].fields && state.form[formName].fields[ownProps.fieldName]) {
-    fieldValue = state.form[formName].fields[ownProps.fieldName];
-  }
+  var fieldValue = _lodash2.default.get(state, 'form.' + formName + '.fields.' + ownProps.fieldName + '.value');
 
   var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
 
   var hasErrors = fieldErrors.length;
+  var defaultValue = ownProps.defaultValue || '';
+
+  var isValidated = _lodash2.default.get(state, 'form.' + formName + '.fields.' + ownProps.fieldName + '.validated', false);
+  var isSubmitting = _lodash2.default.get(state, 'form.' + formName + '.submitting', false);
 
   return {
     validators: ownProps.validators,
     fieldName: fieldName,
+    defaultValue: defaultValue,
     fieldValue: fieldValue,
     fieldErrors: fieldErrors,
-    hasErrors: hasErrors
+    hasErrors: hasErrors,
+    isValidated: isValidated,
+    isSubmitting: isSubmitting
   };
 };
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
+    initField: function initField(form, field, defaultValue) {
+      dispatch((0, _FormActions.acInitField)(form, field, defaultValue));
+    },
     validateField: function validateField(form, field, value) {
       var validators = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
 
       //console.log(form, field, value, validators);
-      if (validators.length) {
-        dispatch((0, _FormActions.validateField)(form, field, value, validators));
-      }
+      dispatch((0, _FormActions.validateField)(form, field, value, validators));
     },
     changeField: function changeField(form, field, value) {
-      //console.log(form, field, value);
       dispatch((0, _FormActions.acChangeField)(form, field, value));
     },
     clearValidation: function clearValidation(form, field) {
