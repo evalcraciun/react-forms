@@ -9,6 +9,19 @@ const formReducer = (state = initialState, action) => {
 		// 		...action.payload.form
 		// 	}
 		// }
+    case INIT_FORM: {
+      return {
+        ...state,
+        [action.form] : {
+          errors: {},
+          fields: {},
+          meta: {},
+          changed: true,
+          loading: false,
+          submitting: false,
+        }
+      };
+    }
     case INIT_FIELD: {
       const form = state[action.form] ? state[action.form] : {
         errors: {},

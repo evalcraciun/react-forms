@@ -24,6 +24,17 @@ var formReducer = function formReducer() {
     // 		...action.payload.form
     // 	}
     // }
+    case _FormActions.INIT_FORM:
+      {
+        return _extends({}, state, _defineProperty({}, action.form, {
+          errors: {},
+          fields: {},
+          meta: {},
+          changed: true,
+          loading: false,
+          submitting: false
+        }));
+      }
     case _FormActions.INIT_FIELD:
       {
         var form = state[action.form] ? state[action.form] : {
