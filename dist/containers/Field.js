@@ -26,6 +26,8 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -46,11 +48,6 @@ var Field = function (_React$Component) {
   }
 
   _createClass(Field, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {
-      this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
-    }
-  }, {
     key: 'getFieldValue',
     value: function getFieldValue(key) {
       return _lodash2.default.isObject(this.props.fieldValue) ? _lodash2.default.get(this.props.fieldValue, key, '') : this.props.fieldValue;
@@ -82,8 +79,11 @@ var Field = function (_React$Component) {
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(nextProps) {
       if (nextProps.isSubmitting && !nextProps.isValidated) {
-        console.log(nextProps.isValidated);
         this.validateField();
+      }
+
+      if (!nextProps.isInitialized && nextProps.isReady !== false) {
+        this.props.initField(nextProps.formName, nextProps.fieldName, nextProps.defaultValue);
       }
     }
   }, {
@@ -106,7 +106,7 @@ var Field = function (_React$Component) {
       }
 
       var cloneProps = {};
-      cloneProps.value = initialValue;
+      cloneProps.value = initialValue || "";
 
       var processFunc = _lodash2.default.get(element, 'props.processFunc', function (event, value) {
         return value;
@@ -117,7 +117,7 @@ var Field = function (_React$Component) {
           value = event.target.value;
         }
 
-        _this3.changeField(event.target.name, processFunc(event, value));
+        _this3.changeField(keyName, processFunc(event, value));
         if (elementType in elementTypesOnChangeValidation) {
           _this3.validateField();
         }
@@ -145,9 +145,7 @@ var Field = function (_React$Component) {
         var newValue = void 0;
 
         if (key) {
-          newValue = _extends({}, _this4.props.fieldValue);
-
-          _lodash2.default.set(newValue, key, value);
+          newValue = _extends({}, _this4.props.fieldValue, _defineProperty({}, key, value));
         } else {
           newValue = value;
         }
@@ -187,15 +185,17 @@ Field.propTypes = {
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;
   var fieldName = ownProps.fieldName;
-  var fieldValue = _lodash2.default.get(state, 'form.' + formName + '.fields.' + ownProps.fieldName + '.value');
+  var isReady = ownProps.isReady;
+  var fieldValue = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.value');
 
   var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
 
   var hasErrors = fieldErrors.length;
   var defaultValue = ownProps.defaultValue || '';
 
-  var isValidated = _lodash2.default.get(state, 'form.' + formName + '.fields.' + ownProps.fieldName + '.validated', false);
+  var isValidated = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.validated', false);
   var isSubmitting = _lodash2.default.get(state, 'form.' + formName + '.submitting', false);
+  var isInitialized = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.initialized', false);
 
   return {
     validators: ownProps.validators,
@@ -204,8 +204,10 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
     fieldValue: fieldValue,
     fieldErrors: fieldErrors,
     hasErrors: hasErrors,
+    isReady: isReady,
     isValidated: isValidated,
-    isSubmitting: isSubmitting
+    isSubmitting: isSubmitting,
+    isInitialized: isInitialized
   };
 };
 

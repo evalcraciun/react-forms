@@ -1,7 +1,5 @@
 import { INIT_FORM, INIT_FIELD, CHANGE_FIELD, CLEAR_FORM, ATTACH_META, ATTACH_FIELD_META, VALIDATION_ERROR, SET_LOADING, SET_SUBMITTING, CLEAR_VALIDATION_ERROR } from '../actions/FormActions'
 
-import _ from 'lodash';
-
 const initialState = {}
 
 const formReducer = (state = initialState, action) => {
@@ -30,6 +28,7 @@ const formReducer = (state = initialState, action) => {
             ...fields,
             [action.field]: {
               value: action.defaultValue,
+              initialized: true,
               validated: false,
               meta: {},
             }

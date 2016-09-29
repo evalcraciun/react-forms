@@ -9,10 +9,6 @@ import _ from 'lodash';
 const elementTypesOnChangeValidation = ['select'];
 
 class Field extends React.Component {
-  componentDidMount() {
-    this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
-  }
-
   getFieldValue(key) {
     return _.isObject(this.props.fieldValue) ? _.get(this.props.fieldValue, key, '') : this.props.fieldValue;
   }
@@ -39,8 +35,11 @@ class Field extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.isSubmitting && !nextProps.isValidated) {
-      console.log(nextProps.isValidated);
       this.validateField();
+    }
+
+    if (!nextProps.isInitialized && nextProps.isReady !== false) {
+      this.props.initField(nextProps.formName, nextProps.fieldName, nextProps.defaultValue);
     }
   }
 
@@ -60,7 +59,7 @@ class Field extends React.Component {
     }
 
     let cloneProps = {};
-    cloneProps.value = initialValue;
+    cloneProps.value = initialValue || "";
 
     const processFunc = _.get(element, 'props.processFunc', (event, value) => value);
 
@@ -69,7 +68,7 @@ class Field extends React.Component {
         value = event.target.value;
       }
 
-      this.changeField(event.target.name, processFunc(event, value));
+      this.changeField(keyName, processFunc(event, value));
       if (elementType in elementTypesOnChangeValidation) {
         this.validateField();
       }
@@ -99,9 +98,8 @@ class Field extends React.Component {
         if (key) {
           newValue = {
             ...this.props.fieldValue,
+            [key]: value,
           };
-
-          _.set(newValue, key, value);
         } else {
           newValue = value;
         }
@@ -141,7 +139,8 @@ Field.propTypes = {
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
   const fieldName = ownProps.fieldName;
-  const fieldValue = _.get(state, `form.${formName}.fields.${ownProps.fieldName}.value`);
+  const isReady = ownProps.isReady;
+  const fieldValue = _.get(state, `form.${formName}.fields.${fieldName}.value`);
 
   const fieldErrors = (state.form[formName] &&
     state.form[formName].errors &&
@@ -151,8 +150,9 @@ const mapStateToProps = (state, ownProps) => {
   const hasErrors = fieldErrors.length;
   const defaultValue = ownProps.defaultValue || '';
 
-  const isValidated = _.get(state, `form.${formName}.fields.${ownProps.fieldName}.validated`, false);
+  const isValidated = _.get(state, `form.${formName}.fields.${fieldName}.validated`, false);
   const isSubmitting = _.get(state, `form.${formName}.submitting`, false);
+  const isInitialized = _.get(state, `form.${formName}.fields.${fieldName}.initialized`, false);
 
   return {
     validators: ownProps.validators,
@@ -161,8 +161,10 @@ const mapStateToProps = (state, ownProps) => {
     fieldValue,
     fieldErrors,
     hasErrors,
+    isReady,
     isValidated,
     isSubmitting,
+    isInitialized,
   }
 };
 
