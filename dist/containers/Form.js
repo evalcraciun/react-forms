@@ -49,7 +49,6 @@ var Form = function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      console.log(this.props);
       this.props.initForm(this.props.formName);
     }
   }, {
@@ -85,7 +84,6 @@ var Form = function (_React$Component) {
       }
 
       if (!!nextProps.shouldBeLoading !== nextProps.isLoading) {
-        console.log(nextProps.shouldBeLoading, nextProps.isLoading);
         this.props.setLoading(nextProps.shouldBeLoading);
 
         if (this.props.onFinishLoading) {
@@ -147,7 +145,6 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch, getState) {
   var formName = getState.formName;
   return {
     initForm: function initForm(formName) {
-      console.log(formName);
       dispatch((0, _FormActions.initForm)(formName));
     },
     setLoading: function setLoading(bool) {

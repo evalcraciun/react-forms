@@ -15,7 +15,6 @@ class Form extends React.Component {
   }
 
   componentDidMount() {
-    console.log(this.props);
     this.props.initForm(this.props.formName);
   }
 
@@ -50,7 +49,6 @@ class Form extends React.Component {
     }
 
     if (!!nextProps.shouldBeLoading !== nextProps.isLoading) {
-      console.log(nextProps.shouldBeLoading, nextProps.isLoading);
       this.props.setLoading(nextProps.shouldBeLoading);
 
       if (this.props.onFinishLoading) {
