@@ -9,10 +9,10 @@ export const acChangeField = (form, field, value) => {
 };
 
 export const INIT_FORM = 'INIT_FORM';
-export const acInitForm = (name) => {
+export const acInitForm = (form) => {
   return {
     type: INIT_FORM,
-    name
+    form
   }
 };
 
@@ -91,10 +91,10 @@ export const acInitField = (form, field, defaultValue) => {
   }
 }
 
-export const initForm = (name, initialFields, id) => {
+export const initForm = (name) => {
   return (dispatch, getState) => {
-    if ((!getState().form[name]) || (!getState().form[name].changed) || (getState().form[name].id!=id)) {
-      return dispatch(acInitForm(name, initialFields, id))
+    if (!getState().form[name]) {
+      return dispatch(acInitForm(name))
     }
   }
 };

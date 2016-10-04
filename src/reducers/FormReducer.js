@@ -130,7 +130,7 @@ const formReducer = (state = initialState, action) => {
     }
 		case CLEAR_VALIDATION_ERROR: {
 		  let newErrors;
-		  if (action.field in state[action.form].errors) {
+		  if (state[action.form] && state[action.form].errors && action.field in state[action.form].errors) {
         let { [action.field]: removed, ...newErrors} = state[action.form].errors;
       } else {
         newErrors = state[action.form].errors;

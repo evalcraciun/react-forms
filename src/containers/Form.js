@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import Field from './Field';
 
-import { initForm, acClearForm, acSetSubmitting } from '../actions/FormActions';
+import { initForm, acClearForm, acSetSubmitting, acSetLoading } from '../actions/FormActions';
 
 class Form extends React.Component {
   handleSubmit(event) {
@@ -15,7 +15,8 @@ class Form extends React.Component {
   }
 
   componentDidMount() {
-    this.props.initForm();
+    console.log(this.props);
+    this.props.initForm(this.props.formName);
   }
 
   componentWillUnmount() {
@@ -37,16 +38,26 @@ class Form extends React.Component {
           }
         });
 
-        //console.log("validated fields?", allFieldsValidated);
-
         if (allFieldsValidated) {
           // no errors, all fields validated, call submit
           this.props.setSubmitting(false);
           this.props.onSubmit(nextProps.formValues);
         }
 
+      } else {
+        this.props.setSubmitting(false);
       }
     }
+
+    if (!!nextProps.shouldBeLoading !== nextProps.isLoading) {
+      console.log(nextProps.shouldBeLoading, nextProps.isLoading);
+      this.props.setLoading(nextProps.shouldBeLoading);
+
+      if (this.props.onFinishLoading) {
+        this.props.onFinishLoading();
+      }
+    }
+
     /*if (this.props.onSubmit && !this.props.hasErrors) {
      return this.props.onSubmit(event, this.props.formData);
      }
@@ -64,10 +75,14 @@ class Form extends React.Component {
 
 Form.propTypes = {
   formName: React.PropTypes.string.isRequired,
+  shouldBeLoading: React.PropTypes.bool,
+  onFinishLoading: React.PropTypes.func,
+  onSubmit: React.PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
+  const shouldBeLoading = ownProps.shouldBeLoading;
 
   const stateForm = state.form[formName];
   const formFields = stateForm ? stateForm.fields : {};
@@ -79,6 +94,7 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     hasErrors,
+    shouldBeLoading,
     isLoading,
     isSubmitting,
     formFields,
@@ -89,8 +105,11 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, getState) => {
   const formName = getState.formName;
   return {
-    initForm: () => {
+    initForm: (formName) => {
       dispatch(initForm(formName))
+    },
+    setLoading: (bool) => {
+      dispatch(acSetLoading(formName, bool));
     },
     setSubmitting: (bool) => {
       dispatch(acSetSubmitting(formName, bool))

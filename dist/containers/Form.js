@@ -49,7 +49,8 @@ var Form = function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      this.props.initForm();
+      console.log(this.props);
+      this.props.initForm(this.props.formName);
     }
   }, {
     key: 'componentWillUnmount',
@@ -73,15 +74,25 @@ var Form = function (_React$Component) {
             }
           });
 
-          //console.log("validated fields?", allFieldsValidated);
-
           if (allFieldsValidated) {
             // no errors, all fields validated, call submit
             this.props.setSubmitting(false);
             this.props.onSubmit(nextProps.formValues);
           }
+        } else {
+          this.props.setSubmitting(false);
         }
       }
+
+      if (!!nextProps.shouldBeLoading !== nextProps.isLoading) {
+        console.log(nextProps.shouldBeLoading, nextProps.isLoading);
+        this.props.setLoading(nextProps.shouldBeLoading);
+
+        if (this.props.onFinishLoading) {
+          this.props.onFinishLoading();
+        }
+      }
+
       /*if (this.props.onSubmit && !this.props.hasErrors) {
        return this.props.onSubmit(event, this.props.formData);
        }
@@ -102,11 +113,15 @@ var Form = function (_React$Component) {
 }(_react2.default.Component);
 
 Form.propTypes = {
-  formName: _react2.default.PropTypes.string.isRequired
+  formName: _react2.default.PropTypes.string.isRequired,
+  shouldBeLoading: _react2.default.PropTypes.bool,
+  onFinishLoading: _react2.default.PropTypes.func,
+  onSubmit: _react2.default.PropTypes.func
 };
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;
+  var shouldBeLoading = ownProps.shouldBeLoading;
 
   var stateForm = state.form[formName];
   var formFields = stateForm ? stateForm.fields : {};
@@ -120,6 +135,7 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
 
   return {
     hasErrors: hasErrors,
+    shouldBeLoading: shouldBeLoading,
     isLoading: isLoading,
     isSubmitting: isSubmitting,
     formFields: formFields,
@@ -130,8 +146,12 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
 var mapDispatchToProps = function mapDispatchToProps(dispatch, getState) {
   var formName = getState.formName;
   return {
-    initForm: function initForm() {
+    initForm: function initForm(formName) {
+      console.log(formName);
       dispatch((0, _FormActions.initForm)(formName));
+    },
+    setLoading: function setLoading(bool) {
+      dispatch((0, _FormActions.acSetLoading)(formName, bool));
     },
     setSubmitting: function setSubmitting(bool) {
       dispatch((0, _FormActions.acSetSubmitting)(formName, bool));

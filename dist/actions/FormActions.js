@@ -14,10 +14,10 @@ var acChangeField = exports.acChangeField = function acChangeField(form, field, 
 };
 
 var INIT_FORM = exports.INIT_FORM = 'INIT_FORM';
-var acInitForm = exports.acInitForm = function acInitForm(name) {
+var acInitForm = exports.acInitForm = function acInitForm(form) {
   return {
     type: INIT_FORM,
-    name: name
+    form: form
   };
 };
 
@@ -95,10 +95,10 @@ var acInitField = exports.acInitField = function acInitField(form, field, defaul
   };
 };
 
-var initForm = exports.initForm = function initForm(name, initialFields, id) {
+var initForm = exports.initForm = function initForm(name) {
   return function (dispatch, getState) {
-    if (!getState().form[name] || !getState().form[name].changed || getState().form[name].id != id) {
-      return dispatch(acInitForm(name, initialFields, id));
+    if (!getState().form[name]) {
+      return dispatch(acInitForm(name));
     }
   };
 };

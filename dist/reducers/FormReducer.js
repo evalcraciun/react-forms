@@ -105,7 +105,7 @@ var formReducer = function formReducer() {
     case _FormActions.CLEAR_VALIDATION_ERROR:
       {
         var newErrors = void 0;
-        if (action.field in state[action.form].errors) {
+        if (state[action.form] && state[action.form].errors && action.field in state[action.form].errors) {
           var _state$action$form$er = state[action.form].errors;
           var removed = _state$action$form$er[action.field];
 
