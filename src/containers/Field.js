@@ -148,7 +148,7 @@ const mapStateToProps = (state, ownProps) => {
     state.form[formName].errors[fieldName].length) ? state.form[formName].errors[fieldName] : [];
 
   const hasErrors = fieldErrors.length;
-  const defaultValue = ownProps.defaultValue || '';
+  const defaultValue = ownProps.defaultValue;
 
   const isValidated = _.get(state, `form.${formName}.fields.${fieldName}.validated`, false);
   const isSubmitting = _.get(state, `form.${formName}.submitting`, false);

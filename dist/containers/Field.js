@@ -191,7 +191,7 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
 
   var hasErrors = fieldErrors.length;
-  var defaultValue = ownProps.defaultValue || '';
+  var defaultValue = ownProps.defaultValue;
 
   var isValidated = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.validated', false);
   var isSubmitting = _lodash2.default.get(state, 'form.' + formName + '.submitting', false);
