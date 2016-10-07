@@ -15,11 +15,15 @@ class Form extends React.Component {
   }
 
   componentDidMount() {
-    this.props.initForm(this.props.formName);
+    if (!this.props.step || this.props.step == 1) {
+      this.props.initForm(this.props.formName);
+    }
   }
 
   componentWillUnmount() {
-    this.props.clearForm();
+    if (!this.props.step) {
+      this.props.clearForm();
+    }
   }
 
   componentWillReceiveProps(nextProps) {

@@ -49,12 +49,16 @@ var Form = function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      this.props.initForm(this.props.formName);
+      if (!this.props.step || this.props.step == 1) {
+        this.props.initForm(this.props.formName);
+      }
     }
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
-      this.props.clearForm();
+      if (!this.props.step) {
+        this.props.clearForm();
+      }
     }
   }, {
     key: 'componentWillReceiveProps',
