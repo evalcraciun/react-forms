@@ -143,27 +143,35 @@ var Field = function (_React$Component) {
     value: function changeField(key, value) {
       var _this4 = this;
 
-      // TODO: this is called a lot, generating resolve-promises for simple values maybe isn't such a good idea
       var promise = void 0;
       if (typeof value === 'function') {
-        promise = value;
-      } else {
-        promise = Promise.resolve(value);
-      }
+        value.then(function (value) {
+          var newValue = void 0;
 
-      promise.then(function (value) {
+          if (key) {
+            newValue = _extends({}, _this4.props.fieldValue, _defineProperty({}, key, value));
+          } else {
+            newValue = value;
+          }
+
+          var formName = _this4.props.formName;
+          var fieldName = _this4.props.fieldName;
+          _this4.props.changeField(formName, fieldName, newValue);
+        });
+      } else {
+        var formName = this.props.formName;
+        var fieldName = this.props.fieldName;
+
         var newValue = void 0;
 
         if (key) {
-          newValue = _extends({}, _this4.props.fieldValue, _defineProperty({}, key, value));
+          newValue = _extends({}, this.props.fieldValue, _defineProperty({}, key, value));
         } else {
           newValue = value;
         }
 
-        var formName = _this4.props.formName;
-        var fieldName = _this4.props.fieldName;
-        _this4.props.changeField(formName, fieldName, newValue);
-      });
+        this.props.changeField(formName, fieldName, newValue);
+      }
     }
   }, {
     key: 'validateField',

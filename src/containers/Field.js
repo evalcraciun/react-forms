@@ -94,31 +94,42 @@ class Field extends React.Component {
   }
 
   changeField(key, value) {
-    // TODO: this is called a lot, generating resolve-promises for simple values maybe isn't such a good idea
     let promise;
     if (typeof value === 'function') {
-      promise = value;
+      value
+        .then(value => {
+          let newValue;
+
+          if (key) {
+            newValue = {
+              ...this.props.fieldValue,
+              [key]: value,
+            };
+          } else {
+            newValue = value;
+          }
+
+          const formName = this.props.formName;
+          const fieldName = this.props.fieldName;
+          this.props.changeField(formName, fieldName, newValue);
+        });
     } else {
-      promise = Promise.resolve(value);
+      const formName = this.props.formName;
+      const fieldName = this.props.fieldName;
+
+      let newValue;
+
+      if (key) {
+        newValue = {
+          ...this.props.fieldValue,
+          [key]: value,
+        };
+      } else {
+        newValue = value;
+      }
+
+      this.props.changeField(formName, fieldName, newValue);
     }
-
-    promise
-      .then(value => {
-        let newValue;
-
-        if (key) {
-          newValue = {
-            ...this.props.fieldValue,
-            [key]: value,
-          };
-        } else {
-          newValue = value;
-        }
-
-        const formName = this.props.formName;
-        const fieldName = this.props.fieldName;
-        this.props.changeField(formName, fieldName, newValue);
-      });
   }
 
   validateField() {
