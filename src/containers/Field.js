@@ -43,7 +43,7 @@ class Field extends React.Component {
     const keyName = _.get(element, 'props.name', null);
     const isObjValue = _.isObject(this.props.fieldValue) && this.props.fieldValue.constructor === Object;
 
-    const errorClassName = _.get(element, 'props.errorClassName', 'validationError');
+    const errorClassName = this.props.errorClassName || 'validationError';
 
     // set the initial value depending on whether the fields value is an object or not
     let initialValue = null;

@@ -91,7 +91,7 @@ var Field = function (_React$Component) {
       var keyName = _lodash2.default.get(element, 'props.name', null);
       var isObjValue = _lodash2.default.isObject(this.props.fieldValue) && this.props.fieldValue.constructor === Object;
 
-      var errorClassName = _lodash2.default.get(element, 'props.errorClassName', 'validationError');
+      var errorClassName = this.props.errorClassName || 'validationError';
 
       // set the initial value depending on whether the fields value is an object or not
       var initialValue = null;
