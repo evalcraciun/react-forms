@@ -5,6 +5,7 @@ import FieldError from './FieldError';
 
 import { acChangeField, validateField, acClearValidation, acInitField } from '../actions/FormActions';
 import _ from 'lodash';
+import classNames from 'classNames';
 
 const elementTypesOnChangeValidation = ['select'];
 
@@ -14,20 +15,13 @@ class Field extends React.Component {
   }
 
   render() {
-    let classNames = ['formField'];
-
-    if (this.props.hasErrors) {
-      classNames.push('hasErrors');
-    }
-
-    if (this.props.className) {
-      classNames.push(...(_.isArray(this.props.className) ?
-        this.props.className :
-        this.props.className.split(' ')))
-    }
+    const errorClassName = _.get(this, 'props.errorClassName', 'hasErrors');
+    let classes = classNames(this.props.className, 'formField', {
+      [errorClassName]: this.props.hasErrors,
+    });
 
     return (
-      <div className={classNames.join(' ')}>
+      <div className={classes}>
         {React.Children.map(this.props.children, child => this.injectChild(child))}
       </div>
     )
@@ -48,6 +42,8 @@ class Field extends React.Component {
 
     const keyName = _.get(element, 'props.name', null);
     const isObjValue = _.isObject(this.props.fieldValue) && this.props.fieldValue.constructor === Object;
+
+    const errorClassName = _.get(element, 'props.errorClassName', 'validationError');
 
     // set the initial value depending on whether the fields value is an object or not
     let initialValue = null;
@@ -87,6 +83,10 @@ class Field extends React.Component {
     cloneProps.onBlur = () => {
       this.validateField();
     };
+
+    cloneProps.className = classNames(element.props.className, {
+      [errorClassName]: this.props.hasErrors
+    });
 
     return React.cloneElement(element, {
       ...cloneProps,

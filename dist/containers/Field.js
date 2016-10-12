@@ -24,11 +24,13 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var _classNames3 = require('classNames');
+
+var _classNames4 = _interopRequireDefault(_classNames3);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -57,19 +59,12 @@ var Field = function (_React$Component) {
     value: function render() {
       var _this2 = this;
 
-      var classNames = ['formField'];
-
-      if (this.props.hasErrors) {
-        classNames.push('hasErrors');
-      }
-
-      if (this.props.className) {
-        classNames.push.apply(classNames, _toConsumableArray(_lodash2.default.isArray(this.props.className) ? this.props.className : this.props.className.split(' ')));
-      }
+      var errorClassName = _lodash2.default.get(this, 'props.errorClassName', 'hasErrors');
+      var classes = (0, _classNames4.default)(this.props.className, 'formField', _defineProperty({}, errorClassName, this.props.hasErrors));
 
       return _react2.default.createElement(
         'div',
-        { className: classNames.join(' ') },
+        { className: classes },
         _react2.default.Children.map(this.props.children, function (child) {
           return _this2.injectChild(child);
         })
@@ -95,6 +90,8 @@ var Field = function (_React$Component) {
 
       var keyName = _lodash2.default.get(element, 'props.name', null);
       var isObjValue = _lodash2.default.isObject(this.props.fieldValue) && this.props.fieldValue.constructor === Object;
+
+      var errorClassName = _lodash2.default.get(element, 'props.errorClassName', 'validationError');
 
       // set the initial value depending on whether the fields value is an object or not
       var initialValue = null;
@@ -136,6 +133,8 @@ var Field = function (_React$Component) {
       cloneProps.onBlur = function () {
         _this3.validateField();
       };
+
+      cloneProps.className = (0, _classNames4.default)(element.props.className, _defineProperty({}, errorClassName, this.props.hasErrors));
 
       return _react2.default.cloneElement(element, _extends({}, cloneProps));
     }

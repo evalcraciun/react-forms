@@ -109,7 +109,9 @@ var formReducer = function formReducer() {
           var _state$action$form$er = state[action.form].errors;
           var removed = _state$action$form$er[action.field];
 
-          var _newErrors = _objectWithoutProperties(_state$action$form$er, [action.field]);
+          var rest = _objectWithoutProperties(_state$action$form$er, [action.field]);
+
+          newErrors = rest;
         } else {
           newErrors = state[action.form].errors;
         }
