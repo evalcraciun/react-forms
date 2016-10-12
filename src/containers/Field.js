@@ -61,7 +61,18 @@ class Field extends React.Component {
     let cloneProps = {};
     cloneProps.value = initialValue || "";
 
-    const processFunc = _.get(element, 'props.processFunc', (event, value) => value);
+    let processFunc = (event, value) => value;
+
+    let processFuncAttrs = ['processFunc', 'data-processFunc'];
+
+    processFuncAttrs.forEach(attr => {
+      const func = _.get(element.props, attr, null);
+
+      if (typeof func == "function") {
+        processFuncAttrs = func;
+        return false;
+      }
+    });
 
     cloneProps.onChange = (event, value) => {
       if (typeof value === 'undefined') {

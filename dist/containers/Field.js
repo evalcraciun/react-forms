@@ -108,8 +108,19 @@ var Field = function (_React$Component) {
       var cloneProps = {};
       cloneProps.value = initialValue || "";
 
-      var processFunc = _lodash2.default.get(element, 'props.processFunc', function (event, value) {
+      var processFunc = function processFunc(event, value) {
         return value;
+      };
+
+      var processFuncAttrs = ['processFunc', 'data-processFunc'];
+
+      processFuncAttrs.forEach(function (attr) {
+        var func = _lodash2.default.get(element.props, attr, null);
+
+        if (typeof func == "function") {
+          processFuncAttrs = func;
+          return false;
+        }
       });
 
       cloneProps.onChange = function (event, value) {
