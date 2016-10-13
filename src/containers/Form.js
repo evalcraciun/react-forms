@@ -52,9 +52,9 @@ class Form extends React.Component {
       }
     }
 
-    if (!!nextProps.shouldBeLoading !== nextProps.isLoading) {
+    if (nextProps.shouldBeLoading !== this.props.shouldBeLoading &&
+        !!nextProps.shouldBeLoading !== nextProps.isLoading) {
       this.props.setLoading(nextProps.shouldBeLoading);
-
       if (this.props.onFinishLoading) {
         this.props.onFinishLoading();
       }
