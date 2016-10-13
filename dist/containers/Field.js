@@ -24,9 +24,9 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _classNames3 = require('classNames');
+var _classnames = require('classnames');
 
-var _classNames4 = _interopRequireDefault(_classNames3);
+var _classnames2 = _interopRequireDefault(_classnames);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -60,7 +60,7 @@ var Field = function (_React$Component) {
       var _this2 = this;
 
       var errorClassName = _lodash2.default.get(this, 'props.errorClassName', 'hasErrors');
-      var classes = (0, _classNames4.default)(this.props.className, 'formField', _defineProperty({}, errorClassName, this.props.hasErrors));
+      var classes = (0, _classnames2.default)(this.props.className, 'formField', _defineProperty({}, errorClassName, this.props.hasErrors));
 
       return _react2.default.createElement(
         'div',
@@ -133,8 +133,11 @@ var Field = function (_React$Component) {
       cloneProps.onBlur = function () {
         _this3.validateField();
       };
+      cloneProps.onFocus = function () {
+        _this3.clearValidation();
+      };
 
-      cloneProps.className = (0, _classNames4.default)(element.props.className, _defineProperty({}, errorClassName, this.props.hasErrors));
+      cloneProps.className = (0, _classnames2.default)(element.props.className, _defineProperty({}, errorClassName, this.props.hasErrors));
 
       return _react2.default.cloneElement(element, _extends({}, cloneProps));
     }
@@ -179,6 +182,11 @@ var Field = function (_React$Component) {
       this.props.validateField(this.props.formName, this.props.fieldName, this.props.fieldValue, this.props.validators);
     }
   }, {
+    key: 'clearValidation',
+    value: function clearValidation() {
+      this.props.clearValidation(this.props.formName, this.props.fieldName);
+    }
+  }, {
     key: 'clearErrors',
     value: function clearErrors() {
       var formName = this.props.formName;
@@ -209,7 +217,7 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
 
   var hasErrors = fieldErrors.length;
-  var defaultValue = ownProps.defaultValue;
+  var defaultValue = typeof ownProps.defaultValue == "undefined" ? null : ownProps.defaultValue;
 
   var isValidated = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.validated', false);
   var isSubmitting = _lodash2.default.get(state, 'form.' + formName + '.submitting', false);

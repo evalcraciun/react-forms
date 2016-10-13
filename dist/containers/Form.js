@@ -80,14 +80,20 @@ var Form = function (_React$Component) {
           if (allFieldsValidated) {
             // no errors, all fields validated, call submit
             this.props.setSubmitting(false);
-            this.props.onSubmit(nextProps.formValues);
+
+            if (this.props.onSubmit) {
+              this.props.onSubmit(nextProps.formValues);
+            } else {
+              console.warn("luvago-react-forms: No onSubmit Callback defined");
+              console.log("form values:", nextProps.formValues);
+            }
           }
         } else {
           this.props.setSubmitting(false);
         }
       }
 
-      if (nextProps.shouldBeLoading !== this.props.shouldBeLoading && !!nextProps.shouldBeLoading !== nextProps.isLoading) {
+      if (!!nextProps.shouldBeLoading !== nextProps.isLoading) {
         this.props.setLoading(nextProps.shouldBeLoading);
         if (this.props.onFinishLoading) {
           this.props.onFinishLoading();

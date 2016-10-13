@@ -5,7 +5,7 @@ import FieldError from './FieldError';
 
 import { acChangeField, validateField, acClearValidation, acInitField } from '../actions/FormActions';
 import _ from 'lodash';
-import classNames from 'classNames';
+import classNames from 'classnames';
 
 const elementTypesOnChangeValidation = ['select'];
 
@@ -83,6 +83,9 @@ class Field extends React.Component {
     cloneProps.onBlur = () => {
       this.validateField();
     };
+    cloneProps.onFocus = () => {
+      this.clearValidation();
+    };
 
     cloneProps.className = classNames(element.props.className, {
       [errorClassName]: this.props.hasErrors
@@ -141,6 +144,13 @@ class Field extends React.Component {
     );
   }
 
+  clearValidation() {
+    this.props.clearValidation(
+      this.props.formName,
+      this.props.fieldName
+    );
+  }
+
   clearErrors() {
     const formName = this.props.formName;
     const fieldName = this.props.fieldName;
@@ -170,7 +180,7 @@ const mapStateToProps = (state, ownProps) => {
     state.form[formName].errors[fieldName].length) ? state.form[formName].errors[fieldName] : [];
 
   const hasErrors = fieldErrors.length;
-  const defaultValue = ownProps.defaultValue;
+  const defaultValue = typeof ownProps.defaultValue == "undefined" ? null : ownProps.defaultValue;
 
   const isValidated = _.get(state, `form.${formName}.fields.${fieldName}.validated`, false);
   const isSubmitting = _.get(state, `form.${formName}.submitting`, false);
