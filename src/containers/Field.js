@@ -65,7 +65,7 @@ class Field extends React.Component {
       const func = _.get(element.props, attr, null);
 
       if (typeof func == "function") {
-        processFuncAttrs = func;
+        processFunc = func;
         return false;
       }
     });

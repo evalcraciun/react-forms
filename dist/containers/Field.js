@@ -115,7 +115,7 @@ var Field = function (_React$Component) {
         var func = _lodash2.default.get(element.props, attr, null);
 
         if (typeof func == "function") {
-          processFuncAttrs = func;
+          processFunc = func;
           return false;
         }
       });
