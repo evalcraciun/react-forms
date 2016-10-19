@@ -85,6 +85,16 @@ var acSetSubmitting = exports.acSetSubmitting = function acSetSubmitting(form, s
   };
 };
 
+var SET_VALIDATING = exports.SET_VALIDATING = 'SET_VALIDATING';
+var acSetValidating = exports.acSetValidating = function acSetValidating(form, field, validating) {
+  return {
+    type: SET_VALIDATING,
+    form: form,
+    field: field,
+    validating: validating
+  };
+};
+
 var INIT_FIELD = exports.INIT_FIELD = 'INIT_FIELD';
 var acInitField = exports.acInitField = function acInitField(form, field, defaultValue) {
   return {
@@ -103,19 +113,26 @@ var initForm = exports.initForm = function initForm(name) {
   };
 };
 
-var validateField = exports.validateField = function validateField(form, field, value, validators) {
+var validateField = exports.validateField = function validateField(formName, fieldName, value, validators, affects) {
   return function (dispatch, getState) {
+    var state = getState();
+    var form = _.get(state, "form[" + formName + "]", null);
     var errors = [];
     validators.forEach(function (func) {
-      var error = func(value);
+      var error = func(value, form, fieldName);
       if (error) {
         errors.push(error);
       }
     });
+
+    affects.forEach(function (affectedField) {
+      dispatch(acSetValidating(formName, affectedField, true));
+    });
+
     if (errors.length > 0) {
-      return dispatch(acValidationError(form, field, errors));
+      return dispatch(acValidationError(formName, fieldName, errors));
     } else {
-      return dispatch(acClearValidation(form, field));
+      return dispatch(acClearValidation(formName, fieldName));
     }
   };
 };

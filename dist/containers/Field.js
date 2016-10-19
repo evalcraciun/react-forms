@@ -24,13 +24,11 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _classnames = require('classnames');
-
-var _classnames2 = _interopRequireDefault(_classnames);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -55,20 +53,11 @@ var Field = function (_React$Component) {
       return _lodash2.default.isObject(this.props.fieldValue) ? _lodash2.default.get(this.props.fieldValue, key, '') : this.props.fieldValue;
     }
   }, {
-    key: 'render',
-    value: function render() {
-      var _this2 = this;
-
-      var errorClassName = _lodash2.default.get(this, 'props.errorClassName', 'hasErrors');
-      var classes = (0, _classnames2.default)(this.props.className, 'formField', _defineProperty({}, errorClassName, this.props.hasErrors));
-
-      return _react2.default.createElement(
-        'div',
-        { className: classes },
-        _react2.default.Children.map(this.props.children, function (child) {
-          return _this2.injectChild(child);
-        })
-      );
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      if (!this.props.isInitialized && this.props.isReady !== false) {
+        this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
+      }
     }
   }, {
     key: 'componentWillReceiveProps',
@@ -80,18 +69,22 @@ var Field = function (_React$Component) {
       if (!nextProps.isInitialized && nextProps.isReady !== false) {
         this.props.initField(nextProps.formName, nextProps.fieldName, nextProps.defaultValue);
       }
+
+      if (!this.props.shouldValidate && nextProps.shouldValidate) {
+        this.validateField();
+      }
     }
   }, {
     key: 'injectChild',
     value: function injectChild(element) {
-      var _this3 = this;
+      var _this2 = this;
 
       var elementType = element.type;
 
       var keyName = _lodash2.default.get(element, 'props.name', null);
       var isObjValue = _lodash2.default.isObject(this.props.fieldValue) && this.props.fieldValue.constructor === Object;
 
-      var errorClassName = this.props.errorClassName || 'validationError';
+      var errorClassName = this.props.errorClassName || 'has-error';
 
       // set the initial value depending on whether the fields value is an object or not
       var initialValue = null;
@@ -103,7 +96,7 @@ var Field = function (_React$Component) {
       }
 
       var cloneProps = {};
-      cloneProps.value = initialValue || "";
+      cloneProps.value = initialValue || '';
 
       var processFunc = function processFunc(event, value) {
         return value;
@@ -114,7 +107,7 @@ var Field = function (_React$Component) {
       processFuncAttrs.forEach(function (attr) {
         var func = _lodash2.default.get(element.props, attr, null);
 
-        if (typeof func == "function") {
+        if (typeof func == 'function') {
           processFunc = func;
           return false;
         }
@@ -125,26 +118,46 @@ var Field = function (_React$Component) {
           value = event.target.value;
         }
 
-        _this3.changeField(keyName, processFunc(event, value));
+        _this2.changeField(keyName, processFunc(event, value));
         if (elementType in elementTypesOnChangeValidation) {
-          _this3.validateField();
+          _this2.validateField();
         }
       };
-      cloneProps.onBlur = function () {
-        _this3.validateField();
-      };
-      cloneProps.onFocus = function () {
-        _this3.clearValidation();
-      };
 
-      cloneProps.className = (0, _classnames2.default)(element.props.className, _defineProperty({}, errorClassName, this.props.hasErrors));
+      if (this.props.validateTrigger) {
+        this.props.validateTrigger.forEach(function (trigger) {
+          cloneProps[trigger] = function () {
+            _this2.validateField();
+          };
+        });
+      }
+
+      if (this.props.clearErrorTrigger) {
+        this.props.clearErrorTrigger.forEach(function (trigger) {
+          cloneProps[trigger] = function () {
+            _this2.clearValidation();
+          };
+        });
+      }
+
+      var classes = [];
+
+      if (element.props.className) {
+        classes.push.apply(classes, _toConsumableArray(element.props.className.split(' ')));
+      }
+
+      if (this.props.hasErrors) {
+        classes.push(errorClassName);
+      }
+
+      cloneProps.className = classes.join(' ');
 
       return _react2.default.cloneElement(element, _extends({}, cloneProps));
     }
   }, {
     key: 'changeField',
     value: function changeField(key, value) {
-      var _this4 = this;
+      var _this3 = this;
 
       var promise = void 0;
       if (typeof value === 'function') {
@@ -152,14 +165,14 @@ var Field = function (_React$Component) {
           var newValue = void 0;
 
           if (key) {
-            newValue = _extends({}, _this4.props.fieldValue, _defineProperty({}, key, value));
+            newValue = _extends({}, _this3.props.fieldValue, _defineProperty({}, key, value));
           } else {
             newValue = value;
           }
 
-          var formName = _this4.props.formName;
-          var fieldName = _this4.props.fieldName;
-          _this4.props.changeField(formName, fieldName, newValue);
+          var formName = _this3.props.formName;
+          var fieldName = _this3.props.fieldName;
+          _this3.props.changeField(formName, fieldName, newValue);
         });
       } else {
         var formName = this.props.formName;
@@ -179,12 +192,14 @@ var Field = function (_React$Component) {
   }, {
     key: 'validateField',
     value: function validateField() {
-      this.props.validateField(this.props.formName, this.props.fieldName, this.props.fieldValue, this.props.validators);
+      this.props.validateField(this.props.formName, this.props.fieldName, this.props.fieldValue, this.props.validators, this.props.affectsFields);
     }
   }, {
     key: 'clearValidation',
     value: function clearValidation() {
-      this.props.clearValidation(this.props.formName, this.props.fieldName);
+      if (this.props.hasErrors) {
+        this.props.clearValidation(this.props.formName, this.props.fieldName);
+      }
     }
   }, {
     key: 'clearErrors',
@@ -196,6 +211,26 @@ var Field = function (_React$Component) {
         this.props.clearValidation(formName, fieldName);
       }
     }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this4 = this;
+
+      var errorClassName = _lodash2.default.get(this, 'props.errorClassName', 'has-error');
+      var classes = ['formField'].concat(_toConsumableArray(this.props.className.split(' ')));
+
+      if (this.props.hasErrors) {
+        classes.push(errorClassName);
+      }
+
+      return _react2.default.createElement(
+        'div',
+        { className: classes.join(' ') },
+        _react2.default.Children.map(this.props.children, function (child) {
+          return _this4.injectChild(child);
+        })
+      );
+    }
   }]);
 
   return Field;
@@ -205,7 +240,10 @@ Field.propTypes = {
   fieldName: _react2.default.PropTypes.string.isRequired,
   formName: _react2.default.PropTypes.string.isRequired,
   processFunc: _react2.default.PropTypes.func,
-  validators: _react2.default.PropTypes.array
+  validators: _react2.default.PropTypes.array,
+  validateTrigger: _react2.default.PropTypes.any,
+  clearErrorTrigger: _react2.default.PropTypes.any,
+  affectsFields: _react2.default.PropTypes.array
 };
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
@@ -217,14 +255,22 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
 
   var hasErrors = fieldErrors.length;
-  var defaultValue = typeof ownProps.defaultValue == "undefined" ? null : ownProps.defaultValue;
+  var defaultValue = typeof ownProps.defaultValue === 'undefined' ? null : ownProps.defaultValue;
+
+  var validateTrigger = typeof ownProps.validateTrigger !== 'undefined' && typeof ownProps.validateTrigger === 'string' ? [ownProps.validateTrigger] : ownProps.validateTrigger || ['onBlur'];
+
+  var clearErrorTrigger = typeof ownProps.clearErrorTrigger !== 'undefined' && typeof ownProps.clearErrorTrigger === 'string' ? [ownProps.clearErrorTrigger] : ownProps.clearErrorTrigger || ['onFocus'];
 
   var isValidated = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.validated', false);
   var isSubmitting = _lodash2.default.get(state, 'form.' + formName + '.submitting', false);
+  var shouldValidate = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.shouldValidate', false);
   var isInitialized = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.initialized', false);
 
   return {
     validators: ownProps.validators,
+    affectsFields: ownProps.affectsFields,
+    validateTrigger: validateTrigger,
+    clearErrorTrigger: clearErrorTrigger,
     fieldName: fieldName,
     defaultValue: defaultValue,
     fieldValue: fieldValue,
@@ -232,6 +278,7 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
     hasErrors: hasErrors,
     isReady: isReady,
     isValidated: isValidated,
+    shouldValidate: shouldValidate,
     isSubmitting: isSubmitting,
     isInitialized: isInitialized
   };
@@ -244,9 +291,10 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     },
     validateField: function validateField(form, field, value) {
       var validators = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
+      var affects = arguments.length <= 4 || arguments[4] === undefined ? [] : arguments[4];
 
-      //console.log(form, field, value, validators);
-      dispatch((0, _FormActions.validateField)(form, field, value, validators));
+      // console.log(form, field, value, validators);
+      dispatch((0, _FormActions.validateField)(form, field, value, validators, affects));
     },
     changeField: function changeField(form, field, value) {
       dispatch((0, _FormActions.acChangeField)(form, field, value));

@@ -81,6 +81,16 @@ export const acSetSubmitting = (form, submitting) => {
   }
 }
 
+export const SET_VALIDATING = 'SET_VALIDATING';
+export const acSetValidating = (form, field, validating) => {
+  return {
+    type: SET_VALIDATING,
+    form,
+    field,
+    validating
+  }
+};
+
 export const INIT_FIELD = 'INIT_FIELD';
 export const acInitField = (form, field, defaultValue) => {
   return {
@@ -99,19 +109,26 @@ export const initForm = (name) => {
   }
 };
 
-export const validateField = (form, field, value, validators) => {
+export const validateField = (formName, fieldName, value, validators, affects) => {
   return (dispatch, getState) => {
+    const state = getState();
+    const form = _.get(state, `form[${formName}]`, null);
     let errors = [];
-    validators.forEach( func => {
-      const error = func(value);
+    validators.forEach(func => {
+      const error = func(value, form, fieldName);
       if (error) {
         errors.push(error)
       }
     });
+
+    affects.forEach(affectedField => {
+      dispatch(acSetValidating(formName, affectedField, true))
+    });
+
     if (errors.length>0) {
-      return dispatch(acValidationError(form, field, errors))
+      return dispatch(acValidationError(formName, fieldName, errors))
     } else {
-      return dispatch(acClearValidation(form, field));
+      return dispatch(acClearValidation(formName, fieldName));
     }
   }
 };

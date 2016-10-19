@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.FormValidators = exports.FormActions = exports.FileUpload = exports.Input = exports.Button = exports.FormReducer = exports.Submit = exports.FieldError = exports.Field = exports.Form = undefined;
+exports.FormHelper = exports.FormValidators = exports.FormActions = exports.FormReducer = exports.Submit = exports.FieldError = exports.Field = exports.Form = undefined;
 
 var _Form2 = require('./containers/Form');
 
@@ -25,18 +25,6 @@ var _FormReducer2 = require('./reducers/FormReducer');
 
 var _FormReducer3 = _interopRequireDefault(_FormReducer2);
 
-var _Button2 = require('./components/Button');
-
-var _Button3 = _interopRequireDefault(_Button2);
-
-var _Input2 = require('./components/Input');
-
-var _Input3 = _interopRequireDefault(_Input2);
-
-var _FileUpload2 = require('./components/FileUpload');
-
-var _FileUpload3 = _interopRequireDefault(_FileUpload2);
-
 var _FormActions2 = require('./actions/FormActions');
 
 var _FormActions = _interopRequireWildcard(_FormActions2);
@@ -44,6 +32,10 @@ var _FormActions = _interopRequireWildcard(_FormActions2);
 var _validators = require('./helper/validators');
 
 var _FormValidators = _interopRequireWildcard(_validators);
+
+var _FormHelper2 = require('./helper/FormHelper');
+
+var _FormHelper3 = _interopRequireDefault(_FormHelper2);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -54,8 +46,11 @@ exports.Field = _Field3.default;
 exports.FieldError = _FieldError3.default;
 exports.Submit = _Submit3.default;
 exports.FormReducer = _FormReducer3.default;
-exports.Button = _Button3.default;
-exports.Input = _Input3.default;
-exports.FileUpload = _FileUpload3.default;
+
+// export Button from './components/Button'
+// export Input from './components/Input'
+// export FileUpload from './components/FileUpload'
+
 exports.FormActions = _FormActions;
 exports.FormValidators = _FormValidators;
+exports.FormHelper = _FormHelper3.default;

@@ -52,6 +52,7 @@ var formReducer = function formReducer() {
             value: action.defaultValue,
             initialized: true,
             validated: false,
+            shouldValidate: false,
             meta: {}
           }))
         })));
@@ -86,7 +87,8 @@ var formReducer = function formReducer() {
         return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
           errors: _extends({}, state[action.form].errors, _defineProperty({}, action.field, action.errors)),
           fields: _extends({}, state[action.form].fields, _defineProperty({}, action.field, _extends({}, state[action.form].fields[action.field], {
-            validated: true
+            validated: true,
+            shouldValidate: false
           })))
         })));
       }
@@ -102,24 +104,35 @@ var formReducer = function formReducer() {
           submitting: !!action.submitting
         })));
       }
+    case _FormActions.SET_VALIDATING:
+      {
+        return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
+          fields: _extends({}, state[action.form].fields, _defineProperty({}, action.field, _extends({}, state[action.form].fields[action.field], {
+            shouldValidate: !!action.validating
+          })))
+        })));
+      }
     case _FormActions.CLEAR_VALIDATION_ERROR:
       {
-        var newErrors = void 0;
-        if (state[action.form] && state[action.form].errors && action.field in state[action.form].errors) {
-          var _state$action$form$er = state[action.form].errors;
-          var removed = _state$action$form$er[action.field];
+        var newErrors = {};
+        if (state[action.form] && state[action.form].errors) {
+          if (action.field in state[action.form].errors) {
+            var _state$action$form$er = state[action.form].errors;
+            var removed = _state$action$form$er[action.field];
 
-          var rest = _objectWithoutProperties(_state$action$form$er, [action.field]);
+            var rest = _objectWithoutProperties(_state$action$form$er, [action.field]);
 
-          newErrors = rest;
-        } else {
-          newErrors = state[action.form].errors;
+            newErrors = rest;
+          } else {
+            newErrors = state[action.form].errors;
+          }
         }
 
         return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
           errors: newErrors,
           fields: _extends({}, state[action.form].fields, _defineProperty({}, action.field, _extends({}, state[action.form].fields[action.field], {
-            validated: true
+            validated: true,
+            shouldValidate: false
           })))
         })));
       }

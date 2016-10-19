@@ -49,14 +49,14 @@ var Form = function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      if (!this.props.step || this.props.step == 1) {
+      if (!this.props.oneOfMany || this.props.oneOfMany === 'FIRST') {
         this.props.initForm(this.props.formName);
       }
     }
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
-      if (!this.props.step) {
+      if (!this.props.oneOfMany || this.props.oneOfMany === 'LAST') {
         this.props.clearForm();
       }
     }
@@ -65,7 +65,7 @@ var Form = function (_React$Component) {
     value: function componentWillReceiveProps(nextProps) {
       if (nextProps.isSubmitting) {
         // can't submit when there's errors
-        //console.log("hasErrors?", !!nextProps.hasErrors);
+        // console.log("hasErrors?", !!nextProps.hasErrors);
         if (!nextProps.hasErrors) {
           var allFieldsValidated = true;
 
@@ -83,9 +83,6 @@ var Form = function (_React$Component) {
 
             if (this.props.onSubmit) {
               this.props.onSubmit(nextProps.formValues);
-            } else {
-              console.warn("luvago-react-forms: No onSubmit Callback defined");
-              console.log("form values:", nextProps.formValues);
             }
           }
         } else {
@@ -100,7 +97,7 @@ var Form = function (_React$Component) {
         }
       }
 
-      /*if (this.props.onSubmit && !this.props.hasErrors) {
+      /* if (this.props.onSubmit && !this.props.hasErrors) {
        return this.props.onSubmit(event, this.props.formData);
        }
       */
@@ -123,7 +120,8 @@ Form.propTypes = {
   formName: _react2.default.PropTypes.string.isRequired,
   shouldBeLoading: _react2.default.PropTypes.bool,
   onFinishLoading: _react2.default.PropTypes.func,
-  onSubmit: _react2.default.PropTypes.func
+  onSubmit: _react2.default.PropTypes.func,
+  oneOfMany: _react2.default.PropTypes.string
 };
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {

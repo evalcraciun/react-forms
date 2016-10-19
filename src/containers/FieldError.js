@@ -5,7 +5,17 @@ import { acChangeField, validateField } from '../actions/FormActions';
 
 class FieldError extends React.Component {
   render() {
-    return (<span>{this.props.errors.join(' ')}</span>);
+    const classes = ['validationFieldError'];
+    
+    if (this.props.className) {
+      classes.push(...this.props.className.split(' '));
+    }
+
+    return (
+      <span className={classes.join(' ')}>
+        {this.props.errors.join(' ')}
+      </span>
+    );
   }
 }
 

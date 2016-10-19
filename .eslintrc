@@ -8,6 +8,8 @@
     },
     "rules": {
         "react/prefer-stateless-function": [2, { "ignorePureComponents": true }],
-        "no-underscore-dangle": "off"
+        "no-underscore-dangle": "off",
+        "max-len": "off",
+        "react/jsx-no-bind": "off"
     }
 }

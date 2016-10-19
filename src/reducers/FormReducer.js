@@ -1,4 +1,4 @@
-import { INIT_FORM, INIT_FIELD, CHANGE_FIELD, CLEAR_FORM, ATTACH_META, ATTACH_FIELD_META, VALIDATION_ERROR, SET_LOADING, SET_SUBMITTING, CLEAR_VALIDATION_ERROR } from '../actions/FormActions'
+import { INIT_FORM, INIT_FIELD, CHANGE_FIELD, CLEAR_FORM, ATTACH_META, ATTACH_FIELD_META, VALIDATION_ERROR, SET_LOADING, SET_SUBMITTING, SET_VALIDATING, CLEAR_VALIDATION_ERROR } from '../actions/FormActions'
 
 const initialState = {}
 
@@ -43,6 +43,7 @@ const formReducer = (state = initialState, action) => {
               value: action.defaultValue,
               initialized: true,
               validated: false,
+							shouldValidate: false,
               meta: {},
             }
           }
@@ -104,7 +105,8 @@ const formReducer = (state = initialState, action) => {
             ...state[action.form].fields,
             [action.field]: {
               ...state[action.form].fields[action.field],
-              validated: true
+              validated: true,
+							shouldValidate: false
             }
           }
 				}
@@ -128,13 +130,30 @@ const formReducer = (state = initialState, action) => {
         }
       }
     }
+		case SET_VALIDATING: {
+			return {
+				...state,
+				[action.form] : {
+					...state[action.form],
+          fields: {
+            ...state[action.form].fields,
+            [action.field]: {
+              ...state[action.form].fields[action.field],
+              shouldValidate: !!action.validating
+            }
+          }
+				}
+			}
+		}
 		case CLEAR_VALIDATION_ERROR: {
-		  let newErrors;
-		  if (state[action.form] && state[action.form].errors && action.field in state[action.form].errors) {
-        let { [action.field]: removed, ...rest} = state[action.form].errors;
-				newErrors = rest;
-      } else {
-        newErrors = state[action.form].errors;
+		  let newErrors = {};
+		  if (state[action.form] && state[action.form].errors) {
+				if (action.field in state[action.form].errors) {
+				  let { [action.field]: removed, ...rest} = state[action.form].errors;
+					newErrors = rest;
+	      } else {
+	        newErrors = state[action.form].errors;
+				}
       }
 
 		  return {
@@ -146,7 +165,8 @@ const formReducer = (state = initialState, action) => {
             ...state[action.form].fields,
             [action.field]: {
               ...state[action.form].fields[action.field],
-              validated: true
+              validated: true,
+							shouldValidate: false
             }
           }
 				}
