@@ -66,8 +66,9 @@ Submit.propTypes = {
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;
   var form = state.form[formName];
-  var hasErrors = form && form.errors && Object.keys(form.errors).length;
-
+  var hasErrors = form && form.errors && Object.keys(form.errors).filter(function (fieldKey) {
+    return form.fields && form.fields[fieldKey] && form.fields[fieldKey].mounted;
+  }).length;
   var label = ownProps.label || 'Submit';
   var isLoading = form && form.loading;
 

@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var CHANGE_FIELD = exports.CHANGE_FIELD = "CHANGE_FIELD";
+var CHANGE_FIELD = exports.CHANGE_FIELD = 'CHANGE_FIELD';
 var acChangeField = exports.acChangeField = function acChangeField(form, field, value) {
   return {
     type: CHANGE_FIELD,
@@ -21,7 +21,7 @@ var acInitForm = exports.acInitForm = function acInitForm(form) {
   };
 };
 
-var VALIDATION_ERROR = exports.VALIDATION_ERROR = "VALIDATION_ERROR";
+var VALIDATION_ERROR = exports.VALIDATION_ERROR = 'VALIDATION_ERROR';
 var acValidationError = exports.acValidationError = function acValidationError(form, field, errors) {
   return {
     type: VALIDATION_ERROR,
@@ -31,7 +31,7 @@ var acValidationError = exports.acValidationError = function acValidationError(f
   };
 };
 
-var CLEAR_VALIDATION_ERROR = exports.CLEAR_VALIDATION_ERROR = "CLEAR_VALIDATION_ERROR";
+var CLEAR_VALIDATION_ERROR = exports.CLEAR_VALIDATION_ERROR = 'CLEAR_VALIDATION_ERROR';
 var acClearValidation = exports.acClearValidation = function acClearValidation(form, field) {
   return {
     type: CLEAR_VALIDATION_ERROR,
@@ -95,6 +95,16 @@ var acSetValidating = exports.acSetValidating = function acSetValidating(form, f
   };
 };
 
+var SET_MOUNTED = exports.SET_MOUNTED = 'SET_MOUNTED';
+var acSetMounted = exports.acSetMounted = function acSetMounted(form, field, mounted) {
+  return {
+    type: SET_MOUNTED,
+    form: form,
+    field: field,
+    mounted: mounted
+  };
+};
+
 var INIT_FIELD = exports.INIT_FIELD = 'INIT_FIELD';
 var acInitField = exports.acInitField = function acInitField(form, field, defaultValue) {
   return {
@@ -116,7 +126,7 @@ var initForm = exports.initForm = function initForm(name) {
 var validateField = exports.validateField = function validateField(formName, fieldName, value, validators, affects) {
   return function (dispatch, getState) {
     var state = getState();
-    var form = _.get(state, "form[" + formName + "]", null);
+    var form = _.get(state, 'form[' + formName + ']', null);
     var errors = [];
     validators.forEach(function (func) {
       var error = func(value, form, fieldName);

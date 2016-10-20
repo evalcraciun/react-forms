@@ -49,14 +49,13 @@ var Form = function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      if (!this.props.oneOfMany || this.props.oneOfMany === 'FIRST') {
-        this.props.initForm(this.props.formName);
-      }
+      this.props.initForm(this.props.formName);
     }
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
-      if (!this.props.oneOfMany || this.props.oneOfMany === 'LAST') {
+      // multipart forms do not reset until submit
+      if (!this.props.multiForm) {
         this.props.clearForm();
       }
     }
@@ -72,7 +71,7 @@ var Form = function (_React$Component) {
           // can't submit when there's unvalidated fields
           Object.keys(nextProps.formFields).forEach(function (fieldName) {
             var field = nextProps.formFields[fieldName];
-            if (!field.validated) {
+            if (field.mounted && !field.validated) {
               allFieldsValidated = false;
             }
           });
@@ -121,7 +120,7 @@ Form.propTypes = {
   shouldBeLoading: _react2.default.PropTypes.bool,
   onFinishLoading: _react2.default.PropTypes.func,
   onSubmit: _react2.default.PropTypes.func,
-  oneOfMany: _react2.default.PropTypes.string
+  multiForm: _react2.default.PropTypes.bool
 };
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
@@ -134,7 +133,9 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
     return field.value;
   });
 
-  var hasErrors = stateForm && stateForm.errors && Object.keys(stateForm.errors).length;
+  var hasErrors = stateForm && stateForm.errors && Object.keys(stateForm.errors).filter(function (errorKey) {
+    return stateForm.fields[errorKey].mounted;
+  }).length;
   var isLoading = stateForm && stateForm.loading;
   var isSubmitting = stateForm && stateForm.submitting;
 

@@ -15,13 +15,12 @@ class Form extends React.Component {
   }
 
   componentDidMount() {
-    if (!this.props.oneOfMany || this.props.oneOfMany === 'FIRST') {
-      this.props.initForm(this.props.formName);
-    }
+    this.props.initForm(this.props.formName);
   }
 
   componentWillUnmount() {
-    if (!this.props.oneOfMany || this.props.oneOfMany === 'LAST') {
+    // multipart forms do not reset until submit
+    if (!this.props.multiForm) {
       this.props.clearForm();
     }
   }
@@ -36,7 +35,7 @@ class Form extends React.Component {
         // can't submit when there's unvalidated fields
         Object.keys(nextProps.formFields).forEach(fieldName => {
           const field = nextProps.formFields[fieldName];
-          if (!field.validated) {
+          if (field.mounted && !field.validated) {
             allFieldsValidated = false;
           }
         });
@@ -81,7 +80,7 @@ Form.propTypes = {
   shouldBeLoading: React.PropTypes.bool,
   onFinishLoading: React.PropTypes.func,
   onSubmit: React.PropTypes.func,
-  oneOfMany: React.PropTypes.string,
+  multiForm: React.PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => {
@@ -92,7 +91,7 @@ const mapStateToProps = (state, ownProps) => {
   const formFields = stateForm ? stateForm.fields : {};
   const formValues = _.mapValues(formFields, field => field.value);
 
-  const hasErrors = (stateForm && stateForm.errors && Object.keys(stateForm.errors).length);
+  const hasErrors = (stateForm && stateForm.errors && Object.keys(stateForm.errors).filter(errorKey => stateForm.fields[errorKey].mounted).length);
   const isLoading = (stateForm && stateForm.loading);
   const isSubmitting = (stateForm && stateForm.submitting);
 

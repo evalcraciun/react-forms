@@ -12,8 +12,6 @@ var _react2 = _interopRequireDefault(_react);
 
 var _reactRedux = require('react-redux');
 
-var _FormActions = require('../actions/FormActions');
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -52,6 +50,11 @@ var FieldError = function (_React$Component) {
 
   return FieldError;
 }(_react2.default.Component);
+
+FieldError.propTypes = {
+  className: _react2.default.PropTypes.any,
+  errors: _react2.default.PropTypes.array
+};
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var errors = [];

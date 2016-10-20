@@ -36,8 +36,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var elementTypesOnChangeValidation = ['select'];
-
 var Field = function (_React$Component) {
   _inherits(Field, _React$Component);
 
@@ -55,9 +53,18 @@ var Field = function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      if (!this.props.isInitialized && this.props.isReady !== false) {
-        this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
+      if (!this.props.isInitialized) {
+        if (this.props.isReady !== false) {
+          this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
+        }
+      } else {
+        this.props.setMounted(this.props.formName, this.props.fieldName, true);
       }
+    }
+  }, {
+    key: 'componentWillUnmount',
+    value: function componentWillUnmount() {
+      this.props.setMounted(this.props.formName, this.props.fieldName, false);
     }
   }, {
     key: 'componentWillReceiveProps',
@@ -119,9 +126,11 @@ var Field = function (_React$Component) {
         }
 
         _this2.changeField(keyName, processFunc(event, value));
-        if (elementType in elementTypesOnChangeValidation) {
+
+        // fixme: oh god
+        setTimeout(function () {
           _this2.validateField();
-        }
+        }, 0);
       };
 
       if (this.props.validateTrigger) {
@@ -199,16 +208,6 @@ var Field = function (_React$Component) {
     value: function clearValidation() {
       if (this.props.hasErrors) {
         this.props.clearValidation(this.props.formName, this.props.fieldName);
-      }
-    }
-  }, {
-    key: 'clearErrors',
-    value: function clearErrors() {
-      var formName = this.props.formName;
-      var fieldName = this.props.fieldName;
-
-      if (this.props.hasErrors) {
-        this.props.clearValidation(formName, fieldName);
       }
     }
   }, {
@@ -301,6 +300,9 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     },
     clearValidation: function clearValidation(form, field) {
       dispatch((0, _FormActions.acClearValidation)(form, field));
+    },
+    setMounted: function setMounted(form, field, mounted) {
+      dispatch((0, _FormActions.acSetMounted)(form, field, mounted));
     }
   };
 };

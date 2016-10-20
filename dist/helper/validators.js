@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.v_mustBeChecked = exports.v_mustEqualField = exports.v_password = exports.v_phone = exports.v_isEmail = exports.v_isNumeric = exports.v_noWrappingWhitespace = exports.v_noWhitespace = exports.v_maxlength = exports.v_minlength = exports.v_required = undefined;
+exports.v_testRegex = exports.v_mustBeChecked = exports.v_mustEqualField = exports.v_password = exports.v_phone = exports.v_isEmail = exports.v_isNumeric = exports.v_noWrappingWhitespace = exports.v_noWhitespace = exports.v_maxlength = exports.v_minlength = exports.v_required = undefined;
 
 var _lodash = require('lodash');
 
@@ -128,4 +128,30 @@ var v_mustBeChecked = exports.v_mustBeChecked = function v_mustBeChecked(value) 
     text: 'Must be checked',
     key: 'notChecked'
   } : false;
+};
+
+var v_testRegex = exports.v_testRegex = function v_testRegex(regexString) {
+  var regexFlags = arguments.length <= 1 || arguments[1] === undefined ? 'g' : arguments[1];
+
+  var regex = void 0;
+  try {
+    regex = new RegExp(regexString, regexFlags);
+  } catch (e) {
+    console.error('invalid regular expression for validation', regexString, e);
+  }
+
+  return function (value) {
+    if (!regex) {
+      // this is terrible from a ux perspective
+      return {
+        text: 'Field has invalid validation',
+        key: 'invalidValidation'
+      };
+    }
+
+    return !regex.test(value) ? {
+      text: 'Invalid Value',
+      key: 'regexFailed'
+    } : false;
+  };
 };

@@ -119,3 +119,27 @@ export const v_mustBeChecked = (value) => {
     key: 'notChecked',
   } : false;
 };
+
+export const v_testRegex = (regexString, regexFlags = 'g') => {
+  let regex;
+  try {
+    regex = new RegExp(regexString, regexFlags);
+  } catch (e) {
+    console.error('invalid regular expression for validation', regexString, e);
+  }
+
+  return (value) => {
+    if (!regex) {
+      // this is terrible from a ux perspective
+      return {
+        text: 'Field has invalid validation',
+        key: 'invalidValidation',
+      };
+    }
+
+    return !regex.test(value) ? {
+      text: 'Invalid Value',
+      key: 'regexFailed',
+    } : false;
+  };
+};

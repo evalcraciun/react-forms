@@ -3,10 +3,8 @@ import { connect } from 'react-redux';
 
 import FieldError from './FieldError';
 
-import { acChangeField, validateField, acClearValidation, acInitField } from '../actions/FormActions';
+import { acChangeField, validateField, acClearValidation, acInitField, acSetMounted } from '../actions/FormActions';
 import _ from 'lodash';
-
-const elementTypesOnChangeValidation = ['select'];
 
 class Field extends React.Component {
   getFieldValue(key) {
@@ -14,9 +12,17 @@ class Field extends React.Component {
   }
 
   componentDidMount() {
-    if (!this.props.isInitialized && this.props.isReady !== false) {
-      this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
+    if (!this.props.isInitialized) {
+      if (this.props.isReady !== false) {
+        this.props.initField(this.props.formName, this.props.fieldName, this.props.defaultValue);
+      }
+    } else {
+      this.props.setMounted(this.props.formName, this.props.fieldName, true);
     }
+  }
+
+  componentWillUnmount() {
+    this.props.setMounted(this.props.formName, this.props.fieldName, false);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -72,9 +78,11 @@ class Field extends React.Component {
       }
 
       this.changeField(keyName, processFunc(event, value));
-      if (elementType in elementTypesOnChangeValidation) {
+
+      // fixme: oh god
+      setTimeout(() => {
         this.validateField();
-      }
+      }, 0)
     };
 
     if (this.props.validateTrigger) {
@@ -168,15 +176,6 @@ class Field extends React.Component {
     }
   }
 
-  clearErrors() {
-    const formName = this.props.formName;
-    const fieldName = this.props.fieldName;
-
-    if (this.props.hasErrors) {
-      this.props.clearValidation(formName, fieldName);
-    }
-  }
-
   render() {
     const errorClassName = _.get(this, 'props.errorClassName', 'has-error');
     const classes = ['formField', ...this.props.className.split(' ')];
@@ -263,6 +262,9 @@ const mapDispatchToProps = (dispatch) => {
     clearValidation: (form, field) => {
       dispatch(acClearValidation(form, field));
     },
+    setMounted: (form, field, mounted) => {
+      dispatch(acSetMounted(form, field, mounted));
+    }
   };
 };
 

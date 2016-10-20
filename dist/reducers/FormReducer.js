@@ -20,12 +20,16 @@ var formReducer = function formReducer() {
 
   switch (action.type) {
     // case "RESET_STATE": {
-    // 	return {
-    // 		...action.payload.form
-    // 	}
+    //   return {
+    //     ...action.payload.form
+    //   }
     // }
     case _FormActions.INIT_FORM:
       {
+        if (state[action.form]) {
+          return state[action.form];
+        }
+
         return _extends({}, state, _defineProperty({}, action.form, {
           errors: {},
           fields: {},
@@ -37,6 +41,7 @@ var formReducer = function formReducer() {
       }
     case _FormActions.INIT_FIELD:
       {
+        // default form state
         var form = state[action.form] ? state[action.form] : {
           errors: {},
           fields: {},
@@ -53,6 +58,7 @@ var formReducer = function formReducer() {
             initialized: true,
             validated: false,
             shouldValidate: false,
+            mounted: true,
             meta: {}
           }))
         })));
@@ -109,6 +115,14 @@ var formReducer = function formReducer() {
         return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
           fields: _extends({}, state[action.form].fields, _defineProperty({}, action.field, _extends({}, state[action.form].fields[action.field], {
             shouldValidate: !!action.validating
+          })))
+        })));
+      }
+    case _FormActions.SET_MOUNTED:
+      {
+        return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
+          fields: _extends({}, state[action.form].fields, _defineProperty({}, action.field, _extends({}, state[action.form].fields[action.field], {
+            mounted: !!action.mounted
           })))
         })));
       }

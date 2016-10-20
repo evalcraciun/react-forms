@@ -1,12 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { acChangeField, validateField } from '../actions/FormActions';
-
 class FieldError extends React.Component {
   render() {
     const classes = ['validationFieldError'];
-    
+
     if (this.props.className) {
       classes.push(...this.props.className.split(' '));
     }
@@ -18,6 +16,11 @@ class FieldError extends React.Component {
     );
   }
 }
+
+FieldError.propTypes = {
+  className: React.PropTypes.any,
+  errors: React.PropTypes.array,
+};
 
 const mapStateToProps = (state, ownProps) => {
   let errors = [];
@@ -35,7 +38,7 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     errors,
-  }
+  };
 };
 
 FieldError.propTypes = {

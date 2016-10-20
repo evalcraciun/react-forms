@@ -36,8 +36,7 @@ Submit.propTypes = {
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
   const form = state.form[formName];
-  const hasErrors = (form && form.errors && Object.keys(form.errors).length);
-
+  const hasErrors = (form && form.errors && Object.keys(form.errors).filter(fieldKey => form.fields && form.fields[fieldKey] && form.fields[fieldKey].mounted).length);
   let label = ownProps.label || 'Submit';
   const isLoading = (form && form.loading);
 

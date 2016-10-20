@@ -17,6 +17,7 @@ This package provides containers to work with forms, inputs, and custom input-co
 
 ## Form Attributes
 * `formName` - used as the key in the state to save the current form
+* `multiForm` - set to true to turn off clearing on change
 
 ## Field Attributes
 * `formName` - used as the key in the state to save the current form
