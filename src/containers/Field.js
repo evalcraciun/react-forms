@@ -178,7 +178,8 @@ class Field extends React.Component {
 
   render() {
     const errorClassName = _.get(this, 'props.errorClassName', 'has-error');
-    const classes = ['formField', ...this.props.className.split(' ')];
+    const className = this.props.className || '';
+    const classes = ['formField', ...className.split(' ')];
 
     if (this.props.hasErrors) {
       classes.push(errorClassName);

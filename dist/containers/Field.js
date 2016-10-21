@@ -216,7 +216,8 @@ var Field = function (_React$Component) {
       var _this4 = this;
 
       var errorClassName = _lodash2.default.get(this, 'props.errorClassName', 'has-error');
-      var classes = ['formField'].concat(_toConsumableArray(this.props.className.split(' ')));
+      var className = this.props.className || '';
+      var classes = ['formField'].concat(_toConsumableArray(className.split(' ')));
 
       if (this.props.hasErrors) {
         classes.push(errorClassName);
