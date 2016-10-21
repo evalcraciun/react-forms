@@ -152,6 +152,10 @@ const formReducer = (state = initialState, action) => {
       };
     }
     case SET_MOUNTED: {
+      if (!(action.form in state)) {
+        return state;
+      }
+
       return {
         ...state,
         [action.form]: {

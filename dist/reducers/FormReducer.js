@@ -120,6 +120,10 @@ var formReducer = function formReducer() {
       }
     case _FormActions.SET_MOUNTED:
       {
+        if (!(action.form in state)) {
+          return state;
+        }
+
         return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
           fields: _extends({}, state[action.form].fields, _defineProperty({}, action.field, _extends({}, state[action.form].fields[action.field], {
             mounted: !!action.mounted

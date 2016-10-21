@@ -3,6 +3,14 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.validateField = exports.initForm = exports.acInitField = exports.INIT_FIELD = exports.acSetMounted = exports.SET_MOUNTED = exports.acSetValidating = exports.SET_VALIDATING = exports.acSetSubmitting = exports.SET_SUBMITTING = exports.acSetLoading = exports.SET_LOADING = exports.acClearForm = exports.CLEAR_FORM = exports.acAttachFieldMeta = exports.ATTACH_FIELD_META = exports.acAttachMeta = exports.ATTACH_META = exports.acClearValidation = exports.CLEAR_VALIDATION_ERROR = exports.acValidationError = exports.VALIDATION_ERROR = exports.acInitForm = exports.INIT_FORM = exports.acChangeField = exports.CHANGE_FIELD = undefined;
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var CHANGE_FIELD = exports.CHANGE_FIELD = 'CHANGE_FIELD';
 var acChangeField = exports.acChangeField = function acChangeField(form, field, value) {
   return {
@@ -126,7 +134,7 @@ var initForm = exports.initForm = function initForm(name) {
 var validateField = exports.validateField = function validateField(formName, fieldName, value, validators, affects) {
   return function (dispatch, getState) {
     var state = getState();
-    var form = _.get(state, 'form[' + formName + ']', null);
+    var form = _lodash2.default.get(state, 'form[' + formName + ']', null);
     var errors = [];
     validators.forEach(function (func) {
       var error = func(value, form, fieldName);
