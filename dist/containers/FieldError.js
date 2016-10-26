@@ -40,10 +40,18 @@ var FieldError = function (_React$Component) {
         classes.push.apply(classes, _toConsumableArray(this.props.className.split(' ')));
       }
 
+      if (!this.props.errors.length) {
+        return _react2.default.createElement('span', null);
+      }
+
       return _react2.default.createElement(
         'span',
         { className: classes.join(' ') },
-        this.props.errors.join(' ')
+        _react2.default.createElement(
+          'span',
+          null,
+          this.props.errors.join(' ')
+        )
       );
     }
   }]);

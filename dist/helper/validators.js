@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.v_testRegex = exports.v_mustBeChecked = exports.v_mustEqualField = exports.v_password = exports.v_phone = exports.v_isEmail = exports.v_isNumeric = exports.v_noWrappingWhitespace = exports.v_noWhitespace = exports.v_maxlength = exports.v_minlength = exports.v_required = undefined;
+exports.v_testRegex = exports.v_mustBeChecked = exports.v_dependOnField = exports.v_mustEqualField = exports.v_password = exports.v_phone = exports.v_isEmail = exports.v_isNumeric = exports.v_noWrappingWhitespace = exports.v_noWhitespace = exports.v_maxlength = exports.v_minlength = exports.v_required = undefined;
 
 var _lodash = require('lodash');
 
@@ -120,6 +120,23 @@ var v_mustEqualField = exports.v_mustEqualField = function v_mustEqualField(targ
     }
 
     return false;
+  };
+};
+
+var v_dependOnField = exports.v_dependOnField = function v_dependOnField(targetFieldName) {
+  return function (value, form) {
+    if (form && form.fields && form.fields[targetFieldName]) {
+      var targetValue = form.fields[targetFieldName].value;
+
+      if (targetValue == null || !targetValue.length) {
+        return value != null && value.length ? {
+          text: 'Field must be empty',
+          key: 'mustBeEmpty'
+        } : false;
+      }
+    }
+
+    return v_required(value);
   };
 };
 

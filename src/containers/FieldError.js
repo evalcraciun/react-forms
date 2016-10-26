@@ -9,9 +9,13 @@ class FieldError extends React.Component {
       classes.push(...this.props.className.split(' '));
     }
 
+    if (!this.props.errors.length) {
+      return (<span />);
+    }
+
     return (
       <span className={classes.join(' ')}>
-        {this.props.errors.join(' ')}
+        <span>{this.props.errors.join(' ')}</span>
       </span>
     );
   }

@@ -103,7 +103,7 @@ export const v_mustEqualField = (targetFieldName) => {
     if (form && form.fields && form.fields[targetFieldName]) {
       const targetValue = form.fields[targetFieldName].value;
 
-      return targetValue !== value ? {
+      return targetValue !== (value ) ? {
         text: 'Fields are not matching',
         key: 'notEqual',
       } : false;
@@ -112,6 +112,23 @@ export const v_mustEqualField = (targetFieldName) => {
     return false;
   };
 };
+
+export const v_dependOnField = (targetFieldName) => {
+  return (value, form) => {
+    if (form && form.fields && form.fields[targetFieldName]) {
+      const targetValue = form.fields[targetFieldName].value;
+
+      if (targetValue == null || !targetValue.length) {
+        return (value != null && value.length) ? {
+          text: 'Field must be empty',
+          key: 'mustBeEmpty'
+        } : false;
+      }
+    }
+
+    return v_required(value);
+  };
+}
 
 export const v_mustBeChecked = (value) => {
   return value !== true ? {
