@@ -207,7 +207,7 @@ const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
   const fieldName = ownProps.fieldName;
   const isReady = ownProps.isReady;
-  const fieldValue = _.get(state, `form.${formName}.fields.${fieldName}.value`);
+  const fieldValue = _.get(state, `form["${formName}"].fields.["${fieldName}"].value`);
 
   const fieldErrors = (state.form[formName] &&
     state.form[formName].errors &&
@@ -225,10 +225,10 @@ const mapStateToProps = (state, ownProps) => {
     [ownProps.clearErrorTrigger] :
     (ownProps.clearErrorTrigger || ['onFocus']);
 
-  const isValidated = _.get(state, `form.${formName}.fields.${fieldName}.validated`, false);
-  const isSubmitting = _.get(state, `form.${formName}.submitting`, false);
-  const shouldValidate = _.get(state, `form.${formName}.fields.${fieldName}.shouldValidate`, false);
-  const isInitialized = _.get(state, `form.${formName}.fields.${fieldName}.initialized`, false);
+  const isValidated = _.get(state, `form["${formName}"].fields.["${fieldName}"].validated`, false);
+  const isSubmitting = _.get(state, `form["${formName}"].submitting`, false);
+  const shouldValidate = _.get(state, `form["${formName}"].fields.["${fieldName}"].shouldValidate`, false);
+  const isInitialized = _.get(state, `form["${formName}"].fields.["${fieldName}"].initialized`, false);
 
   return {
     validators: ownProps.validators,

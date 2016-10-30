@@ -250,7 +250,7 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;
   var fieldName = ownProps.fieldName;
   var isReady = ownProps.isReady;
-  var fieldValue = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.value');
+  var fieldValue = _lodash2.default.get(state, 'form["' + formName + '"].fields.["' + fieldName + '"].value');
 
   var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
 
@@ -261,10 +261,10 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
 
   var clearErrorTrigger = typeof ownProps.clearErrorTrigger !== 'undefined' && typeof ownProps.clearErrorTrigger === 'string' ? [ownProps.clearErrorTrigger] : ownProps.clearErrorTrigger || ['onFocus'];
 
-  var isValidated = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.validated', false);
-  var isSubmitting = _lodash2.default.get(state, 'form.' + formName + '.submitting', false);
-  var shouldValidate = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.shouldValidate', false);
-  var isInitialized = _lodash2.default.get(state, 'form.' + formName + '.fields.' + fieldName + '.initialized', false);
+  var isValidated = _lodash2.default.get(state, 'form["' + formName + '"].fields.["' + fieldName + '"].validated', false);
+  var isSubmitting = _lodash2.default.get(state, 'form["' + formName + '"].submitting', false);
+  var shouldValidate = _lodash2.default.get(state, 'form["' + formName + '"].fields.["' + fieldName + '"].shouldValidate', false);
+  var isInitialized = _lodash2.default.get(state, 'form["' + formName + '"].fields.["' + fieldName + '"].initialized', false);
 
   return {
     validators: ownProps.validators,
