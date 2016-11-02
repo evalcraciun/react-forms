@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.v_testRegex = exports.v_mustBeChecked = exports.v_dependOnField = exports.v_mustEqualField = exports.v_password = exports.v_phone = exports.v_isEmail = exports.v_isNumeric = exports.v_noWrappingWhitespace = exports.v_noWhitespace = exports.v_maxlength = exports.v_minlength = exports.v_required = undefined;
+exports.v_maxImageDimensions = exports.v_minImageDimensions = exports.v_fileSize = exports.v_testRegex = exports.v_mustBeChecked = exports.v_dependOnField = exports.v_mustEqualField = exports.v_password = exports.v_phone = exports.v_isEmail = exports.v_isNumeric = exports.v_noWrappingWhitespace = exports.v_noWhitespace = exports.v_maxlength = exports.v_minlength = exports.v_required = undefined;
 
 var _lodash = require('lodash');
 
@@ -170,5 +170,63 @@ var v_testRegex = exports.v_testRegex = function v_testRegex(regexString) {
       text: 'Invalid Value',
       key: 'regexFailed'
     } : false;
+  };
+};
+
+var v_fileSize = exports.v_fileSize = function v_fileSize(fileSizeKb) {
+  return function (value, form, field, meta) {
+    if (meta) {
+      return meta.size / 1000 > fileSizeKb ? {
+        text: 'Upload is too big',
+        key: 'fileuploadSize'
+      } : false;
+    }
+    return false;
+  };
+};
+
+var v_minImageDimensions = exports.v_minImageDimensions = function v_minImageDimensions(width, height) {
+  return function (value) {
+    return new Promise(function (resolve, reject) {
+      var image = new Image();
+      image.src = value;
+      image.onload = function () {
+        if (image.width < width || image.height < height) {
+          resolve({
+            text: 'Image Dimensions too small, min allowed {width} x {height}',
+            key: 'fileuploadImageMinDimensions',
+            values: {
+              width: width,
+              height: height
+            }
+          });
+        } else {
+          resolve(false);
+        }
+      };
+    });
+  };
+};
+
+var v_maxImageDimensions = exports.v_maxImageDimensions = function v_maxImageDimensions(width, height) {
+  return function (value) {
+    return new Promise(function (resolve, reject) {
+      var image = new Image();
+      image.src = value;
+      image.onload = function () {
+        if (image.width > width || image.height > height) {
+          resolve({
+            text: 'Image Dimensions too big, max allowed {width} x {height}',
+            key: 'fileuploadImageMaxDimensions',
+            values: {
+              width: width,
+              height: height
+            }
+          });
+        } else {
+          resolve(false);
+        }
+      };
+    });
   };
 };

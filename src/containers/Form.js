@@ -35,7 +35,7 @@ class Form extends React.Component {
         // can't submit when there's unvalidated fields
         Object.keys(nextProps.formFields).forEach(fieldName => {
           const field = nextProps.formFields[fieldName];
-          if (field.mounted && !field.validated) {
+          if (field.mounted && field.validation !== 'VALIDATED') {
             allFieldsValidated = false;
           }
         });

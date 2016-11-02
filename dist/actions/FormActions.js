@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.validateField = exports.initForm = exports.acInitField = exports.INIT_FIELD = exports.acSetMounted = exports.SET_MOUNTED = exports.acSetValidating = exports.SET_VALIDATING = exports.acSetSubmitting = exports.SET_SUBMITTING = exports.acSetLoading = exports.SET_LOADING = exports.acClearForm = exports.CLEAR_FORM = exports.acAttachFieldMeta = exports.ATTACH_FIELD_META = exports.acAttachMeta = exports.ATTACH_META = exports.acClearValidation = exports.CLEAR_VALIDATION_ERROR = exports.acValidationError = exports.VALIDATION_ERROR = exports.acInitForm = exports.INIT_FORM = exports.acChangeField = exports.CHANGE_FIELD = undefined;
+exports.validateField = exports.initForm = exports.acInitField = exports.INIT_FIELD = exports.acSetMounted = exports.SET_MOUNTED = exports.acSetValidateState = exports.SET_VALIDATE_STATE = exports.acSetSubmitting = exports.SET_SUBMITTING = exports.acSetLoading = exports.SET_LOADING = exports.acClearForm = exports.CLEAR_FORM = exports.acAttachFieldMeta = exports.ATTACH_FIELD_META = exports.acAttachMeta = exports.ATTACH_META = exports.acClearValidation = exports.CLEAR_VALIDATION_ERROR = exports.acValidationError = exports.VALIDATION_ERROR = exports.acInitForm = exports.INIT_FORM = exports.acChangeField = exports.CHANGE_FIELD = undefined;
 
 var _lodash = require('lodash');
 
@@ -12,12 +12,13 @@ var _lodash2 = _interopRequireDefault(_lodash);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var CHANGE_FIELD = exports.CHANGE_FIELD = 'CHANGE_FIELD';
-var acChangeField = exports.acChangeField = function acChangeField(form, field, value) {
+var acChangeField = exports.acChangeField = function acChangeField(form, field, value, meta) {
   return {
     type: CHANGE_FIELD,
     form: form,
     field: field,
-    value: value
+    value: value,
+    meta: meta
   };
 };
 
@@ -92,14 +93,13 @@ var acSetSubmitting = exports.acSetSubmitting = function acSetSubmitting(form, s
     submitting: submitting
   };
 };
-
-var SET_VALIDATING = exports.SET_VALIDATING = 'SET_VALIDATING';
-var acSetValidating = exports.acSetValidating = function acSetValidating(form, field, validating) {
+var SET_VALIDATE_STATE = exports.SET_VALIDATE_STATE = 'SET_VALIDATE_STATE';
+var acSetValidateState = exports.acSetValidateState = function acSetValidateState(form, field, state) {
   return {
-    type: SET_VALIDATING,
+    type: SET_VALIDATE_STATE,
     form: form,
     field: field,
-    validating: validating
+    state: state
   };
 };
 
@@ -131,26 +131,46 @@ var initForm = exports.initForm = function initForm(name) {
   };
 };
 
-var validateField = exports.validateField = function validateField(formName, fieldName, value, validators, affects) {
+var validateField = exports.validateField = function validateField(formName, fieldName, value, meta, validators, affects) {
   return function (dispatch, getState) {
     var state = getState();
     var form = _lodash2.default.get(state, 'form[' + formName + ']', null);
-    var errors = [];
+    var fieldErrors = _lodash2.default.get(state, 'form[' + formName + '].errors[' + fieldName + ']');
+    var validation = _lodash2.default.get(state, 'form[' + formName + '].fields[' + fieldName + ']', 'UNKNOWN');
+
+    var validatorPromises = [];
+    var isSubmitting = form && form.submitting;
+
+    var hasAsyncValidation = false;
     validators.forEach(function (func) {
-      var error = func(value, form, fieldName);
-      if (error) {
-        errors.push(error);
+      var result = func(value, form, fieldName, meta);
+      if (result !== false || typeof result === 'function') {
+        hasAsyncValidation = hasAsyncValidation || typeof result === 'function';
+        validatorPromises.push(result);
       }
     });
 
-    affects.forEach(function (affectedField) {
-      dispatch(acSetValidating(formName, affectedField, true));
-    });
-
-    if (errors.length > 0) {
-      return dispatch(acValidationError(formName, fieldName, errors));
-    } else {
-      return dispatch(acClearValidation(formName, fieldName));
+    if (hasAsyncValidation) {
+      dispatch(acSetValidateState(formName, fieldName, 'RUNNING'));
     }
+
+    Promise.all(validatorPromises).then(function (errors) {
+      affects.forEach(function (affectedFieldName) {
+        var affectedFieldValidation = _lodash2.default.get(state, 'form[' + formName + '].fields[' + fieldName + '].validation', 'UNKNOWN');
+        if (!isSubmitting && affectedFieldValidation !== 'PENDING') {
+          dispatch(acSetValidateState(formName, affectedFieldName, 'PENDING'));
+        }
+      });
+
+      if (errors.length) {
+        dispatch(acValidationError(formName, fieldName, errors));
+      } else if (fieldErrors) {
+        dispatch(acClearValidation(formName, fieldName));
+      } else if (validation !== 'VALIDATED') {
+        dispatch(acSetValidateState(formName, fieldName, 'VALIDATED'));
+      }
+    }).catch(function (err) {
+      console.error('validation failed for field ' + fieldName, err);
+    });
   };
 };

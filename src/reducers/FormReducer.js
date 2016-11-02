@@ -1,4 +1,4 @@
-import { INIT_FORM, INIT_FIELD, CHANGE_FIELD, CLEAR_FORM, ATTACH_META, ATTACH_FIELD_META, VALIDATION_ERROR, SET_LOADING, SET_SUBMITTING, SET_VALIDATING, SET_MOUNTED, CLEAR_VALIDATION_ERROR } from '../actions/FormActions';
+import { INIT_FORM, INIT_FIELD, CHANGE_FIELD, CLEAR_FORM, ATTACH_META, ATTACH_FIELD_META, VALIDATION_ERROR, SET_LOADING, SET_SUBMITTING, SET_VALIDATING, SET_VALIDATE_STATE, SET_MOUNTED, CLEAR_VALIDATION_ERROR } from '../actions/FormActions';
 
 const initialState = {};
 
@@ -47,8 +47,7 @@ const formReducer = (state = initialState, action) => {
             [action.field]: {
               value: action.defaultValue,
               initialized: true,
-              validated: false,
-              shouldValidate: false,
+              validation: 'UNKNOWN',
               mounted: true,
               meta: {},
             },
@@ -68,7 +67,25 @@ const formReducer = (state = initialState, action) => {
             [action.field]: {
               ...fields[action.field],
               value: action.value,
+              // only update meta if the value is not undefined
+              meta: (typeof action.meta === 'undefined' ? state[action.form].fields[action.field].meta : action.meta),
               validated: false,
+            },
+          },
+        },
+      };
+    }
+    case SET_VALIDATE_STATE: {
+      const fields = state[action.form].fields;
+      return {
+        ...state,
+        [action.form]: {
+          ...state[action.form],
+          fields: {
+            ...fields,
+            [action.field]: {
+              ...fields[action.field],
+              validation: action.state,
             },
           },
         },
@@ -111,8 +128,7 @@ const formReducer = (state = initialState, action) => {
             ...state[action.form].fields,
             [action.field]: {
               ...state[action.form].fields[action.field],
-              validated: true,
-              shouldValidate: false,
+              validation: 'VALIDATED',
             },
           },
         },
@@ -145,7 +161,7 @@ const formReducer = (state = initialState, action) => {
             ...state[action.form].fields,
             [action.field]: {
               ...state[action.form].fields[action.field],
-              shouldValidate: !!action.validating,
+              validation: 'PENDING',
             },
           },
         },
@@ -190,8 +206,7 @@ const formReducer = (state = initialState, action) => {
             ...state[action.form].fields,
             [action.field]: {
               ...state[action.form].fields[action.field],
-              validated: true,
-              shouldValidate: false,
+              validated: 'VALIDATED',
             },
           },
         },

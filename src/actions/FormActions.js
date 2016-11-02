@@ -1,12 +1,13 @@
 import _ from 'lodash';
 
 export const CHANGE_FIELD = 'CHANGE_FIELD';
-export const acChangeField = (form, field, value) => {
+export const acChangeField = (form, field, value, meta) => {
   return {
     type: CHANGE_FIELD,
     form,
     field,
     value,
+    meta,
   };
 };
 
@@ -82,14 +83,13 @@ export const acSetSubmitting = (form, submitting) => {
     submitting,
   };
 };
-
-export const SET_VALIDATING = 'SET_VALIDATING';
-export const acSetValidating = (form, field, validating) => {
+export const SET_VALIDATE_STATE = 'SET_VALIDATE_STATE';
+export const acSetValidateState = (form, field, state) => {
   return {
-    type: SET_VALIDATING,
+    type: SET_VALIDATE_STATE,
     form,
     field,
-    validating,
+    state,
   };
 };
 
@@ -121,26 +121,48 @@ export const initForm = (name) => {
   };
 };
 
-export const validateField = (formName, fieldName, value, validators, affects) => {
+export const validateField = (formName, fieldName, value, meta, validators, affects) => {
   return (dispatch, getState) => {
     const state = getState();
     const form = _.get(state, `form[${formName}]`, null);
-    const errors = [];
+    const fieldErrors = _.get(state, `form[${formName}].errors[${fieldName}]`);
+    const validation = _.get(state, `form[${formName}].fields[${fieldName}]`, 'UNKNOWN');
+
+    const validatorPromises = [];
+    const isSubmitting = form && form.submitting;
+
+    let hasAsyncValidation = false;
     validators.forEach(func => {
-      const error = func(value, form, fieldName);
-      if (error) {
-        errors.push(error);
+      const result = func(value, form, fieldName, meta);
+      if (result !== false || typeof result === 'function') {
+        hasAsyncValidation = hasAsyncValidation || typeof result === 'function';
+        validatorPromises.push(result);
       }
     });
 
-    affects.forEach(affectedField => {
-      dispatch(acSetValidating(formName, affectedField, true));
-    });
-
-    if (errors.length > 0) {
-      return dispatch(acValidationError(formName, fieldName, errors));
-    } else {
-      return dispatch(acClearValidation(formName, fieldName));
+    if (hasAsyncValidation) {
+      dispatch(acSetValidateState(formName, fieldName, 'RUNNING'));
     }
+
+    Promise.all(validatorPromises)
+      .then((errors) => {
+        affects.forEach(affectedFieldName => {
+          const affectedFieldValidation = _.get(state, `form[${formName}].fields[${fieldName}].validation`, 'UNKNOWN');
+          if (!isSubmitting && affectedFieldValidation !== 'PENDING') {
+            dispatch(acSetValidateState(formName, affectedFieldName, 'PENDING'));
+          }
+        });
+
+        if (errors.length) {
+          dispatch(acValidationError(formName, fieldName, errors));
+        } else if (fieldErrors) {
+          dispatch(acClearValidation(formName, fieldName));
+        } else if (validation !== 'VALIDATED') {
+          dispatch(acSetValidateState(formName, fieldName, 'VALIDATED'));
+        }
+      })
+      .catch((err) => {
+        console.error(`validation failed for field ${fieldName}`, err);
+      });
   };
 };

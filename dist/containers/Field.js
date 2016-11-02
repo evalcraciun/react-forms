@@ -14,15 +14,11 @@ var _react2 = _interopRequireDefault(_react);
 
 var _reactRedux = require('react-redux');
 
-var _FieldError = require('./FieldError');
-
-var _FieldError2 = _interopRequireDefault(_FieldError);
-
-var _FormActions = require('../actions/FormActions');
-
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
+
+var _FormActions = require('../actions/FormActions');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -69,7 +65,7 @@ var Field = function (_React$Component) {
   }, {
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(nextProps) {
-      if (nextProps.isSubmitting && !nextProps.isValidated) {
+      if (nextProps.isSubmitting && nextProps.validation !== 'VALIDATED' && nextProps.validation !== 'RUNNING') {
         this.validateField();
       }
 
@@ -77,7 +73,7 @@ var Field = function (_React$Component) {
         this.props.initField(nextProps.formName, nextProps.fieldName, nextProps.defaultValue);
       }
 
-      if (!this.props.shouldValidate && nextProps.shouldValidate) {
+      if (this.props.validation !== 'PENDING' && nextProps.validation === 'PENDING') {
         this.validateField();
       }
     }
@@ -96,8 +92,7 @@ var Field = function (_React$Component) {
       // set the initial value depending on whether the fields value is an object or not
       var initialValue = null;
       if (isObjValue && !keyName) {
-        initialValue = null;
-        console.warn('missing input name for a value structure that is an object');
+        initialValue = this.props.fieldValue;
       } else {
         initialValue = isObjValue ? this.props.fieldValue[keyName] : this.props.fieldValue;
       }
@@ -120,12 +115,12 @@ var Field = function (_React$Component) {
         }
       });
 
-      cloneProps.onChange = function (event, value) {
+      cloneProps.onChange = function (event, value, meta) {
         if (typeof value === 'undefined') {
           value = event.target.value;
         }
 
-        _this2.changeField(keyName, processFunc(event, value));
+        _this2.changeField(keyName, processFunc(event, value), meta);
 
         // fixme: oh god
         setTimeout(function () {
@@ -159,13 +154,14 @@ var Field = function (_React$Component) {
         classes.push(errorClassName);
       }
 
+      cloneProps['data-errors'] = this.props.fieldErrors;
       cloneProps.className = classes.join(' ');
 
       return _react2.default.cloneElement(element, _extends({}, cloneProps));
     }
   }, {
     key: 'changeField',
-    value: function changeField(key, value) {
+    value: function changeField(key, value, meta) {
       var _this3 = this;
 
       var promise = void 0;
@@ -181,7 +177,7 @@ var Field = function (_React$Component) {
 
           var formName = _this3.props.formName;
           var fieldName = _this3.props.fieldName;
-          _this3.props.changeField(formName, fieldName, newValue);
+          _this3.props.changeField(formName, fieldName, newValue, meta);
         });
       } else {
         var formName = this.props.formName;
@@ -195,13 +191,13 @@ var Field = function (_React$Component) {
           newValue = value;
         }
 
-        this.props.changeField(formName, fieldName, newValue);
+        this.props.changeField(formName, fieldName, newValue, meta);
       }
     }
   }, {
     key: 'validateField',
     value: function validateField() {
-      this.props.validateField(this.props.formName, this.props.fieldName, this.props.fieldValue, this.props.validators, this.props.affectsFields);
+      this.props.validateField(this.props.formName, this.props.fieldName, this.props.fieldValue, this.props.fieldMeta, this.props.validators, this.props.affectsFields);
     }
   }, {
     key: 'clearValidation',
@@ -243,14 +239,16 @@ Field.propTypes = {
   validators: _react2.default.PropTypes.array,
   validateTrigger: _react2.default.PropTypes.any,
   clearErrorTrigger: _react2.default.PropTypes.any,
-  affectsFields: _react2.default.PropTypes.array
+  affectsFields: _react2.default.PropTypes.array,
+  validation: _react2.default.PropTypes.string
 };
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   var formName = ownProps.formName;
   var fieldName = ownProps.fieldName;
   var isReady = ownProps.isReady;
-  var fieldValue = _lodash2.default.get(state, 'form["' + formName + '"].fields.["' + fieldName + '"].value');
+  var fieldValue = _lodash2.default.get(state, 'form["' + formName + '"].fields["' + fieldName + '"].value');
+  var fieldMeta = _lodash2.default.get(state, 'form["' + formName + '"].fields["' + fieldName + '"].meta');
 
   var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
 
@@ -261,10 +259,9 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
 
   var clearErrorTrigger = typeof ownProps.clearErrorTrigger !== 'undefined' && typeof ownProps.clearErrorTrigger === 'string' ? [ownProps.clearErrorTrigger] : ownProps.clearErrorTrigger || ['onFocus'];
 
-  var isValidated = _lodash2.default.get(state, 'form["' + formName + '"].fields.["' + fieldName + '"].validated', false);
+  var validation = _lodash2.default.get(state, 'form["' + formName + '"].fields["' + fieldName + '"].validation', 'UNKNOWN');
+  var isInitialized = _lodash2.default.get(state, 'form["' + formName + '"].fields["' + fieldName + '"].initialized', false);
   var isSubmitting = _lodash2.default.get(state, 'form["' + formName + '"].submitting', false);
-  var shouldValidate = _lodash2.default.get(state, 'form["' + formName + '"].fields.["' + fieldName + '"].shouldValidate', false);
-  var isInitialized = _lodash2.default.get(state, 'form["' + formName + '"].fields.["' + fieldName + '"].initialized', false);
 
   return {
     validators: ownProps.validators,
@@ -274,13 +271,13 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
     fieldName: fieldName,
     defaultValue: defaultValue,
     fieldValue: fieldValue,
+    fieldMeta: fieldMeta,
     fieldErrors: fieldErrors,
     hasErrors: hasErrors,
     isReady: isReady,
-    isValidated: isValidated,
-    shouldValidate: shouldValidate,
-    isSubmitting: isSubmitting,
-    isInitialized: isInitialized
+    validation: validation,
+    isInitialized: isInitialized,
+    isSubmitting: isSubmitting
   };
 };
 
@@ -289,18 +286,18 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     initField: function initField(form, field, defaultValue) {
       dispatch((0, _FormActions.acInitField)(form, field, defaultValue));
     },
-    validateField: function validateField(form, field, value) {
-      var validators = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
-      var affects = arguments.length <= 4 || arguments[4] === undefined ? [] : arguments[4];
+    validateField: function validateField(form, field, value, meta) {
+      var validators = arguments.length <= 4 || arguments[4] === undefined ? [] : arguments[4];
+      var affects = arguments.length <= 5 || arguments[5] === undefined ? [] : arguments[5];
 
       // console.log(form, field, value, validators);
-      dispatch((0, _FormActions.validateField)(form, field, value, validators, affects));
+      dispatch((0, _FormActions.validateField)(form, field, value, meta, validators, affects));
     },
-    changeField: function changeField(form, field, value) {
-      dispatch((0, _FormActions.acChangeField)(form, field, value));
+    changeField: function changeField(form, field, value, meta) {
+      dispatch((0, _FormActions.acChangeField)(form, field, value, meta));
     },
     clearValidation: function clearValidation(form, field) {
-      dispatch((0, _FormActions.acClearValidation)(form, field));
+      dispatch((0, _FormActions.acSetValidateState)(form, field, 'UNKNOWN'));
     },
     setMounted: function setMounted(form, field, mounted) {
       dispatch((0, _FormActions.acSetMounted)(form, field, mounted));

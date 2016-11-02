@@ -103,7 +103,7 @@ export const v_mustEqualField = (targetFieldName) => {
     if (form && form.fields && form.fields[targetFieldName]) {
       const targetValue = form.fields[targetFieldName].value;
 
-      return targetValue !== (value ) ? {
+      return targetValue !== value ? {
         text: 'Fields are not matching',
         key: 'notEqual',
       } : false;
@@ -160,3 +160,61 @@ export const v_testRegex = (regexString, regexFlags = 'g') => {
     } : false;
   };
 };
+
+export const v_fileSize = (fileSizeKb) => {
+  return (value, form, field, meta) => {
+    if (meta) {
+      return ((meta.size / 1000) > fileSizeKb) ? {
+        text: 'Upload is too big',
+        key: 'fileuploadSize',
+      } : false;
+    }
+    return false;
+  }
+}
+
+export const v_minImageDimensions = (width, height) => {
+  return (value) => {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.src = value;
+      image.onload = () => {
+        if (image.width < width || image.height < height) {
+          resolve({
+            text: 'Image Dimensions too small, min allowed {width} x {height}',
+            key: 'fileuploadImageMinDimensions',
+            values: {
+              width,
+              height,
+            },
+          });
+        } else {
+          resolve(false);
+        }
+      }
+    });
+  }
+}
+
+export const v_maxImageDimensions = (width, height) => {
+  return (value) => {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.src = value;
+      image.onload = () => {
+        if (image.width > width || image.height > height) {
+          resolve({
+            text: 'Image Dimensions too big, max allowed {width} x {height}',
+            key: 'fileuploadImageMaxDimensions',
+            values: {
+              width,
+              height,
+            },
+          });
+        } else {
+          resolve(false);
+        }
+      }
+    });
+  }
+}

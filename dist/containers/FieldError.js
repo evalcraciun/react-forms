@@ -41,7 +41,11 @@ var FieldError = function (_React$Component) {
       }
 
       if (!this.props.errors.length) {
-        return _react2.default.createElement('span', null);
+        return _react2.default.createElement(
+          'span',
+          null,
+          this.props.children
+        );
       }
 
       return _react2.default.createElement(

@@ -1,10 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
-
-import FieldError from './FieldError';
-
-import { acChangeField, validateField, acClearValidation, acInitField, acSetMounted } from '../actions/FormActions';
 import _ from 'lodash';
+
+import { acChangeField, validateField, acSetValidateState, acInitField, acSetMounted } from '../actions/FormActions';
 
 class Field extends React.Component {
   getFieldValue(key) {
@@ -26,7 +24,7 @@ class Field extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.isSubmitting && !nextProps.isValidated) {
+    if (nextProps.isSubmitting && nextProps.validation !== 'VALIDATED' && nextProps.validation !== 'RUNNING') {
       this.validateField();
     }
 
@@ -34,7 +32,7 @@ class Field extends React.Component {
       this.props.initField(nextProps.formName, nextProps.fieldName, nextProps.defaultValue);
     }
 
-    if (!this.props.shouldValidate && nextProps.shouldValidate) {
+    if (this.props.validation !== 'PENDING' && nextProps.validation === 'PENDING') {
       this.validateField();
     }
   }
@@ -50,8 +48,7 @@ class Field extends React.Component {
     // set the initial value depending on whether the fields value is an object or not
     let initialValue = null;
     if (isObjValue && !keyName) {
-      initialValue = null;
-      console.warn('missing input name for a value structure that is an object');
+      initialValue = this.props.fieldValue;
     } else {
       initialValue = isObjValue ? this.props.fieldValue[keyName] : this.props.fieldValue;
     }
@@ -72,12 +69,12 @@ class Field extends React.Component {
       }
     });
 
-    cloneProps.onChange = (event, value) => {
+    cloneProps.onChange = (event, value, meta) => {
       if (typeof value === 'undefined') {
         value = event.target.value;
       }
 
-      this.changeField(keyName, processFunc(event, value));
+      this.changeField(keyName, processFunc(event, value), meta);
 
       // fixme: oh god
       setTimeout(() => {
@@ -111,6 +108,7 @@ class Field extends React.Component {
       classes.push(errorClassName);
     }
 
+    cloneProps['data-errors'] = this.props.fieldErrors;
     cloneProps.className = classes.join(' ');
 
     return React.cloneElement(element, {
@@ -118,7 +116,7 @@ class Field extends React.Component {
     });
   }
 
-  changeField(key, value) {
+  changeField(key, value, meta) {
     let promise;
     if (typeof value === 'function') {
       value
@@ -136,7 +134,7 @@ class Field extends React.Component {
 
           const formName = this.props.formName;
           const fieldName = this.props.fieldName;
-          this.props.changeField(formName, fieldName, newValue);
+          this.props.changeField(formName, fieldName, newValue, meta);
         });
     } else {
       const formName = this.props.formName;
@@ -153,7 +151,7 @@ class Field extends React.Component {
         newValue = value;
       }
 
-      this.props.changeField(formName, fieldName, newValue);
+      this.props.changeField(formName, fieldName, newValue, meta);
     }
   }
 
@@ -162,6 +160,7 @@ class Field extends React.Component {
       this.props.formName,
       this.props.fieldName,
       this.props.fieldValue,
+      this.props.fieldMeta,
       this.props.validators,
       this.props.affectsFields
     );
@@ -201,13 +200,15 @@ Field.propTypes = {
   validateTrigger: React.PropTypes.any,
   clearErrorTrigger: React.PropTypes.any,
   affectsFields: React.PropTypes.array,
+  validation: React.PropTypes.string,
 };
 
 const mapStateToProps = (state, ownProps) => {
   const formName = ownProps.formName;
   const fieldName = ownProps.fieldName;
   const isReady = ownProps.isReady;
-  const fieldValue = _.get(state, `form["${formName}"].fields.["${fieldName}"].value`);
+  const fieldValue = _.get(state, `form["${formName}"].fields["${fieldName}"].value`);
+  const fieldMeta = _.get(state, `form["${formName}"].fields["${fieldName}"].meta`);
 
   const fieldErrors = (state.form[formName] &&
     state.form[formName].errors &&
@@ -225,10 +226,9 @@ const mapStateToProps = (state, ownProps) => {
     [ownProps.clearErrorTrigger] :
     (ownProps.clearErrorTrigger || ['onFocus']);
 
-  const isValidated = _.get(state, `form["${formName}"].fields.["${fieldName}"].validated`, false);
+  const validation = _.get(state, `form["${formName}"].fields["${fieldName}"].validation`, 'UNKNOWN');
+  const isInitialized = _.get(state, `form["${formName}"].fields["${fieldName}"].initialized`, false);
   const isSubmitting = _.get(state, `form["${formName}"].submitting`, false);
-  const shouldValidate = _.get(state, `form["${formName}"].fields.["${fieldName}"].shouldValidate`, false);
-  const isInitialized = _.get(state, `form["${formName}"].fields.["${fieldName}"].initialized`, false);
 
   return {
     validators: ownProps.validators,
@@ -238,13 +238,13 @@ const mapStateToProps = (state, ownProps) => {
     fieldName,
     defaultValue,
     fieldValue,
+    fieldMeta,
     fieldErrors,
     hasErrors,
     isReady,
-    isValidated,
-    shouldValidate,
-    isSubmitting,
+    validation,
     isInitialized,
+    isSubmitting,
   };
 };
 
@@ -253,15 +253,15 @@ const mapDispatchToProps = (dispatch) => {
     initField: (form, field, defaultValue) => {
       dispatch(acInitField(form, field, defaultValue));
     },
-    validateField: (form, field, value, validators = [], affects = []) => {
+    validateField: (form, field, value, meta, validators = [], affects = []) => {
       // console.log(form, field, value, validators);
-      dispatch(validateField(form, field, value, validators, affects));
+      dispatch(validateField(form, field, value, meta, validators, affects));
     },
-    changeField: (form, field, value) => {
-      dispatch(acChangeField(form, field, value));
+    changeField: (form, field, value, meta) => {
+      dispatch(acChangeField(form, field, value, meta));
     },
     clearValidation: (form, field) => {
-      dispatch(acClearValidation(form, field));
+      dispatch(acSetValidateState(form, field, 'UNKNOWN'));
     },
     setMounted: (form, field, mounted) => {
       dispatch(acSetMounted(form, field, mounted));

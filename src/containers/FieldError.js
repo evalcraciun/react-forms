@@ -10,7 +10,7 @@ class FieldError extends React.Component {
     }
 
     if (!this.props.errors.length) {
-      return (<span />);
+      return <span>{this.props.children}</span>;
     }
 
     return (
