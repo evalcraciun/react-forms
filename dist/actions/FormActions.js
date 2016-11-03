@@ -131,46 +131,37 @@ var initForm = exports.initForm = function initForm(name) {
   };
 };
 
-var validateField = exports.validateField = function validateField(formName, fieldName, value, meta, validators, affects) {
+var validateField = exports.validateField = function validateField(formName, fieldName, value, validators, affects) {
   return function (dispatch, getState) {
     var state = getState();
     var form = _lodash2.default.get(state, 'form[' + formName + ']', null);
     var fieldErrors = _lodash2.default.get(state, 'form[' + formName + '].errors[' + fieldName + ']');
-    var validation = _lodash2.default.get(state, 'form[' + formName + '].fields[' + fieldName + ']', 'UNKNOWN');
+    var fieldValidation = _lodash2.default.get(state, 'form[' + formName + '].fields[' + fieldName + '].validation');
 
-    var validatorPromises = [];
     var isSubmitting = form && form.submitting;
 
-    var hasAsyncValidation = false;
+    var errors = [];
+
     validators.forEach(function (func) {
-      var result = func(value, form, fieldName, meta);
-      if (result !== false || typeof result === 'function') {
-        hasAsyncValidation = hasAsyncValidation || typeof result === 'function';
-        validatorPromises.push(result);
+      var error = func(value, form, fieldName);
+      if (error !== false) {
+        errors.push(error);
       }
     });
 
-    if (hasAsyncValidation) {
-      dispatch(acSetValidateState(formName, fieldName, 'RUNNING'));
+    affects.forEach(function (affectedFieldName) {
+      var affectedFieldValidation = _lodash2.default.get(state, 'form[' + formName + '].fields[' + fieldName + '].validation', 'UNKNOWN');
+      if (!isSubmitting && affectedFieldValidation !== 'PENDING') {
+        dispatch(acSetValidateState(formName, affectedFieldName, 'PENDING'));
+      }
+    });
+
+    if (errors.length) {
+      dispatch(acValidationError(formName, fieldName, errors));
+    } else if (fieldErrors) {
+      dispatch(acClearValidation(formName, fieldName));
+    } else if (fieldValidation !== 'VALIDATED') {
+      dispatch(acSetValidateState(formName, fieldName, 'VALIDATED'));
     }
-
-    Promise.all(validatorPromises).then(function (errors) {
-      affects.forEach(function (affectedFieldName) {
-        var affectedFieldValidation = _lodash2.default.get(state, 'form[' + formName + '].fields[' + fieldName + '].validation', 'UNKNOWN');
-        if (!isSubmitting && affectedFieldValidation !== 'PENDING') {
-          dispatch(acSetValidateState(formName, affectedFieldName, 'PENDING'));
-        }
-      });
-
-      if (errors.length) {
-        dispatch(acValidationError(formName, fieldName, errors));
-      } else if (fieldErrors) {
-        dispatch(acClearValidation(formName, fieldName));
-      } else if (validation !== 'VALIDATED') {
-        dispatch(acSetValidateState(formName, fieldName, 'VALIDATED'));
-      }
-    }).catch(function (err) {
-      console.error('validation failed for field ' + fieldName, err);
-    });
   };
 };

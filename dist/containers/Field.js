@@ -42,11 +42,6 @@ var Field = function (_React$Component) {
   }
 
   _createClass(Field, [{
-    key: 'getFieldValue',
-    value: function getFieldValue(key) {
-      return _lodash2.default.isObject(this.props.fieldValue) ? _lodash2.default.get(this.props.fieldValue, key, '') : this.props.fieldValue;
-    }
-  }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
       if (!this.props.isInitialized) {
@@ -65,7 +60,7 @@ var Field = function (_React$Component) {
   }, {
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(nextProps) {
-      if (nextProps.isSubmitting && nextProps.validation !== 'VALIDATED' && nextProps.validation !== 'RUNNING') {
+      if (nextProps.isSubmitting && nextProps.validation !== 'VALIDATED') {
         this.validateField();
       }
 
@@ -115,12 +110,12 @@ var Field = function (_React$Component) {
         }
       });
 
-      cloneProps.onChange = function (event, value, meta) {
+      cloneProps.onChange = function (event, value) {
         if (typeof value === 'undefined') {
           value = event.target.value;
         }
 
-        _this2.changeField(keyName, processFunc(event, value), meta);
+        _this2.changeField(keyName, processFunc(event, value));
 
         // fixme: oh god
         setTimeout(function () {
@@ -161,7 +156,7 @@ var Field = function (_React$Component) {
     }
   }, {
     key: 'changeField',
-    value: function changeField(key, value, meta) {
+    value: function changeField(key, value) {
       var _this3 = this;
 
       var promise = void 0;
@@ -177,7 +172,7 @@ var Field = function (_React$Component) {
 
           var formName = _this3.props.formName;
           var fieldName = _this3.props.fieldName;
-          _this3.props.changeField(formName, fieldName, newValue, meta);
+          _this3.props.changeField(formName, fieldName, newValue);
         });
       } else {
         var formName = this.props.formName;
@@ -191,13 +186,13 @@ var Field = function (_React$Component) {
           newValue = value;
         }
 
-        this.props.changeField(formName, fieldName, newValue, meta);
+        this.props.changeField(formName, fieldName, newValue);
       }
     }
   }, {
     key: 'validateField',
     value: function validateField() {
-      this.props.validateField(this.props.formName, this.props.fieldName, this.props.fieldValue, this.props.fieldMeta, this.props.validators, this.props.affectsFields);
+      this.props.validateField(this.props.formName, this.props.fieldName, this.props.fieldValue, this.props.validators, this.props.affectsFields);
     }
   }, {
     key: 'clearValidation',
@@ -248,7 +243,6 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
   var fieldName = ownProps.fieldName;
   var isReady = ownProps.isReady;
   var fieldValue = _lodash2.default.get(state, 'form["' + formName + '"].fields["' + fieldName + '"].value');
-  var fieldMeta = _lodash2.default.get(state, 'form["' + formName + '"].fields["' + fieldName + '"].meta');
 
   var fieldErrors = state.form[formName] && state.form[formName].errors && state.form[formName].errors[fieldName] && state.form[formName].errors[fieldName].length ? state.form[formName].errors[fieldName] : [];
 
@@ -271,7 +265,6 @@ var mapStateToProps = function mapStateToProps(state, ownProps) {
     fieldName: fieldName,
     defaultValue: defaultValue,
     fieldValue: fieldValue,
-    fieldMeta: fieldMeta,
     fieldErrors: fieldErrors,
     hasErrors: hasErrors,
     isReady: isReady,
@@ -286,15 +279,15 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     initField: function initField(form, field, defaultValue) {
       dispatch((0, _FormActions.acInitField)(form, field, defaultValue));
     },
-    validateField: function validateField(form, field, value, meta) {
-      var validators = arguments.length <= 4 || arguments[4] === undefined ? [] : arguments[4];
-      var affects = arguments.length <= 5 || arguments[5] === undefined ? [] : arguments[5];
+    validateField: function validateField(form, field, value) {
+      var validators = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
+      var affects = arguments.length <= 4 || arguments[4] === undefined ? [] : arguments[4];
 
       // console.log(form, field, value, validators);
-      dispatch((0, _FormActions.validateField)(form, field, value, meta, validators, affects));
+      dispatch((0, _FormActions.validateField)(form, field, value, validators, affects));
     },
-    changeField: function changeField(form, field, value, meta) {
-      dispatch((0, _FormActions.acChangeField)(form, field, value, meta));
+    changeField: function changeField(form, field, value) {
+      dispatch((0, _FormActions.acChangeField)(form, field, value));
     },
     clearValidation: function clearValidation(form, field) {
       dispatch((0, _FormActions.acSetValidateState)(form, field, 'UNKNOWN'));

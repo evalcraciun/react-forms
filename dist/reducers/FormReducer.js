@@ -57,8 +57,7 @@ var formReducer = function formReducer() {
             value: action.defaultValue,
             initialized: true,
             validation: 'UNKNOWN',
-            mounted: true,
-            meta: {}
+            mounted: true
           }))
         })));
       }
@@ -69,9 +68,7 @@ var formReducer = function formReducer() {
           changed: true,
           fields: _extends({}, _fields, _defineProperty({}, action.field, _extends({}, _fields[action.field], {
             value: action.value,
-            // only update meta if the value is not undefined
-            meta: typeof action.meta === 'undefined' ? state[action.form].fields[action.field].meta : action.meta,
-            validated: false
+            validation: 'UNKNOWN'
           })))
         })));
       }
@@ -158,7 +155,7 @@ var formReducer = function formReducer() {
         return _extends({}, state, _defineProperty({}, action.form, _extends({}, state[action.form], {
           errors: newErrors,
           fields: _extends({}, state[action.form].fields, _defineProperty({}, action.field, _extends({}, state[action.form].fields[action.field], {
-            validated: 'VALIDATED'
+            validation: 'VALIDATED'
           })))
         })));
       }

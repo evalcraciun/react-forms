@@ -121,48 +121,37 @@ export const initForm = (name) => {
   };
 };
 
-export const validateField = (formName, fieldName, value, meta, validators, affects) => {
+export const validateField = (formName, fieldName, value, validators, affects) => {
   return (dispatch, getState) => {
     const state = getState();
     const form = _.get(state, `form[${formName}]`, null);
     const fieldErrors = _.get(state, `form[${formName}].errors[${fieldName}]`);
-    const validation = _.get(state, `form[${formName}].fields[${fieldName}]`, 'UNKNOWN');
+    const fieldValidation = _.get(state, `form[${formName}].fields[${fieldName}].validation`);
 
-    const validatorPromises = [];
     const isSubmitting = form && form.submitting;
 
-    let hasAsyncValidation = false;
+    const errors = [];
+
     validators.forEach(func => {
-      const result = func(value, form, fieldName, meta);
-      if (result !== false || typeof result === 'function') {
-        hasAsyncValidation = hasAsyncValidation || typeof result === 'function';
-        validatorPromises.push(result);
+      const error = func(value, form, fieldName);
+      if (error !== false) {
+        errors.push(error);
       }
     });
 
-    if (hasAsyncValidation) {
-      dispatch(acSetValidateState(formName, fieldName, 'RUNNING'));
+    affects.forEach(affectedFieldName => {
+      const affectedFieldValidation = _.get(state, `form[${formName}].fields[${fieldName}].validation`, 'UNKNOWN');
+      if (!isSubmitting && affectedFieldValidation !== 'PENDING') {
+        dispatch(acSetValidateState(formName, affectedFieldName, 'PENDING'));
+      }
+    });
+
+    if (errors.length) {
+      dispatch(acValidationError(formName, fieldName, errors));
+    } else if (fieldErrors) {
+      dispatch(acClearValidation(formName, fieldName));
+    } else if (fieldValidation !== 'VALIDATED') {
+      dispatch(acSetValidateState(formName, fieldName, 'VALIDATED'));
     }
-
-    Promise.all(validatorPromises)
-      .then((errors) => {
-        affects.forEach(affectedFieldName => {
-          const affectedFieldValidation = _.get(state, `form[${formName}].fields[${fieldName}].validation`, 'UNKNOWN');
-          if (!isSubmitting && affectedFieldValidation !== 'PENDING') {
-            dispatch(acSetValidateState(formName, affectedFieldName, 'PENDING'));
-          }
-        });
-
-        if (errors.length) {
-          dispatch(acValidationError(formName, fieldName, errors));
-        } else if (fieldErrors) {
-          dispatch(acClearValidation(formName, fieldName));
-        } else if (validation !== 'VALIDATED') {
-          dispatch(acSetValidateState(formName, fieldName, 'VALIDATED'));
-        }
-      })
-      .catch((err) => {
-        console.error(`validation failed for field ${fieldName}`, err);
-      });
   };
 };

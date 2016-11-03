@@ -48,8 +48,7 @@ const formReducer = (state = initialState, action) => {
               value: action.defaultValue,
               initialized: true,
               validation: 'UNKNOWN',
-              mounted: true,
-              meta: {},
+              mounted: true
             },
           },
         },
@@ -67,9 +66,7 @@ const formReducer = (state = initialState, action) => {
             [action.field]: {
               ...fields[action.field],
               value: action.value,
-              // only update meta if the value is not undefined
-              meta: (typeof action.meta === 'undefined' ? state[action.form].fields[action.field].meta : action.meta),
-              validated: false,
+              validation: 'UNKNOWN',
             },
           },
         },
@@ -206,7 +203,7 @@ const formReducer = (state = initialState, action) => {
             ...state[action.form].fields,
             [action.field]: {
               ...state[action.form].fields[action.field],
-              validated: 'VALIDATED',
+              validation: 'VALIDATED',
             },
           },
         },

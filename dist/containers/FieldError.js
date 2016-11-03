@@ -34,18 +34,26 @@ var FieldError = function (_React$Component) {
   _createClass(FieldError, [{
     key: 'render',
     value: function render() {
-      var classes = ['validationFieldError'];
-
-      if (this.props.className) {
-        classes.push.apply(classes, _toConsumableArray(this.props.className.split(' ')));
-      }
-
       if (!this.props.errors.length) {
         return _react2.default.createElement(
           'span',
           null,
           this.props.children
         );
+      }
+
+      if (typeof this.props.renderFunc === 'function') {
+        return _react2.default.createElement(
+          'span',
+          null,
+          this.props.renderFunc(this.props.errors)
+        );
+      }
+
+      var classes = ['validationFieldError'];
+
+      if (this.props.className) {
+        classes.push.apply(classes, _toConsumableArray(this.props.className.split(' ')));
       }
 
       return _react2.default.createElement(
@@ -69,19 +77,13 @@ FieldError.propTypes = {
 };
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
-  var errors = [];
   var formName = ownProps.formName;
   var fieldName = ownProps.fieldName;
   var formState = state.form[formName];
 
+  var errors = [];
   if (formState && formState.errors && Object.keys(formState.errors).length) {
-    var fieldErrors = formState.errors[fieldName];
-
-    if (fieldErrors) {
-      errors = fieldErrors.map(function (fieldError) {
-        return fieldError.text;
-      });
-    }
+    errors = formState.errors[fieldName] || [];
   }
 
   return {

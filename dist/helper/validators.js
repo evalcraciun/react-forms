@@ -174,59 +174,48 @@ var v_testRegex = exports.v_testRegex = function v_testRegex(regexString) {
 };
 
 var v_fileSize = exports.v_fileSize = function v_fileSize(fileSizeKb) {
-  return function (value, form, field, meta) {
-    if (meta) {
-      return meta.size / 1000 > fileSizeKb ? {
+  return function (value) {
+    if (value && value.file && value.file.size / 1000 > fileSizeKb) {
+      return {
         text: 'Upload is too big',
         key: 'fileuploadSize'
-      } : false;
+      };
     }
+
     return false;
   };
 };
 
 var v_minImageDimensions = exports.v_minImageDimensions = function v_minImageDimensions(width, height) {
   return function (value) {
-    return new Promise(function (resolve, reject) {
-      var image = new Image();
-      image.src = value;
-      image.onload = function () {
-        if (image.width < width || image.height < height) {
-          resolve({
-            text: 'Image Dimensions too small, min allowed {width} x {height}',
-            key: 'fileuploadImageMinDimensions',
-            values: {
-              width: width,
-              height: height
-            }
-          });
-        } else {
-          resolve(false);
+    if (value && value.image && (value.image.width < width || value.image.height < height)) {
+      return {
+        text: 'Image Dimensions too small, minimum dimensions are {width} x {height}',
+        key: 'fileuploadImageMinDimensions',
+        values: {
+          width: width,
+          height: height
         }
       };
-    });
+    }
+
+    return false;
   };
 };
 
 var v_maxImageDimensions = exports.v_maxImageDimensions = function v_maxImageDimensions(width, height) {
   return function (value) {
-    return new Promise(function (resolve, reject) {
-      var image = new Image();
-      image.src = value;
-      image.onload = function () {
-        if (image.width > width || image.height > height) {
-          resolve({
-            text: 'Image Dimensions too big, max allowed {width} x {height}',
-            key: 'fileuploadImageMaxDimensions',
-            values: {
-              width: width,
-              height: height
-            }
-          });
-        } else {
-          resolve(false);
+    if (value && value.image && (value.image.width > width || value.image.height > height)) {
+      return {
+        text: 'Image Dimensions too big, max dimensions are {width} x {height}',
+        key: 'fileuploadImageMaxDimensions',
+        values: {
+          width: width,
+          height: height
         }
       };
-    });
+    }
+
+    return false;
   };
 };

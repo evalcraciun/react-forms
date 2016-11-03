@@ -5,10 +5,6 @@ import _ from 'lodash';
 import { acChangeField, validateField, acSetValidateState, acInitField, acSetMounted } from '../actions/FormActions';
 
 class Field extends React.Component {
-  getFieldValue(key) {
-    return _.isObject(this.props.fieldValue) ? _.get(this.props.fieldValue, key, '') : this.props.fieldValue;
-  }
-
   componentDidMount() {
     if (!this.props.isInitialized) {
       if (this.props.isReady !== false) {
@@ -24,7 +20,7 @@ class Field extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.isSubmitting && nextProps.validation !== 'VALIDATED' && nextProps.validation !== 'RUNNING') {
+    if (nextProps.isSubmitting && nextProps.validation !== 'VALIDATED') {
       this.validateField();
     }
 
@@ -69,12 +65,12 @@ class Field extends React.Component {
       }
     });
 
-    cloneProps.onChange = (event, value, meta) => {
+    cloneProps.onChange = (event, value) => {
       if (typeof value === 'undefined') {
         value = event.target.value;
       }
 
-      this.changeField(keyName, processFunc(event, value), meta);
+      this.changeField(keyName, processFunc(event, value));
 
       // fixme: oh god
       setTimeout(() => {
@@ -116,7 +112,7 @@ class Field extends React.Component {
     });
   }
 
-  changeField(key, value, meta) {
+  changeField(key, value) {
     let promise;
     if (typeof value === 'function') {
       value
@@ -134,7 +130,7 @@ class Field extends React.Component {
 
           const formName = this.props.formName;
           const fieldName = this.props.fieldName;
-          this.props.changeField(formName, fieldName, newValue, meta);
+          this.props.changeField(formName, fieldName, newValue);
         });
     } else {
       const formName = this.props.formName;
@@ -151,7 +147,7 @@ class Field extends React.Component {
         newValue = value;
       }
 
-      this.props.changeField(formName, fieldName, newValue, meta);
+      this.props.changeField(formName, fieldName, newValue);
     }
   }
 
@@ -160,7 +156,6 @@ class Field extends React.Component {
       this.props.formName,
       this.props.fieldName,
       this.props.fieldValue,
-      this.props.fieldMeta,
       this.props.validators,
       this.props.affectsFields
     );
@@ -208,7 +203,6 @@ const mapStateToProps = (state, ownProps) => {
   const fieldName = ownProps.fieldName;
   const isReady = ownProps.isReady;
   const fieldValue = _.get(state, `form["${formName}"].fields["${fieldName}"].value`);
-  const fieldMeta = _.get(state, `form["${formName}"].fields["${fieldName}"].meta`);
 
   const fieldErrors = (state.form[formName] &&
     state.form[formName].errors &&
@@ -238,7 +232,6 @@ const mapStateToProps = (state, ownProps) => {
     fieldName,
     defaultValue,
     fieldValue,
-    fieldMeta,
     fieldErrors,
     hasErrors,
     isReady,
@@ -253,12 +246,12 @@ const mapDispatchToProps = (dispatch) => {
     initField: (form, field, defaultValue) => {
       dispatch(acInitField(form, field, defaultValue));
     },
-    validateField: (form, field, value, meta, validators = [], affects = []) => {
+    validateField: (form, field, value, validators = [], affects = []) => {
       // console.log(form, field, value, validators);
-      dispatch(validateField(form, field, value, meta, validators, affects));
+      dispatch(validateField(form, field, value, validators, affects));
     },
-    changeField: (form, field, value, meta) => {
-      dispatch(acChangeField(form, field, value, meta));
+    changeField: (form, field, value) => {
+      dispatch(acChangeField(form, field, value));
     },
     clearValidation: (form, field) => {
       dispatch(acSetValidateState(form, field, 'UNKNOWN'));

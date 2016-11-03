@@ -3,14 +3,18 @@ import { connect } from 'react-redux';
 
 class FieldError extends React.Component {
   render() {
+    if (!this.props.errors.length) {
+      return <span>{this.props.children}</span>;
+    }
+
+    if (typeof this.props.renderFunc === 'function') {
+      return <span>{this.props.renderFunc(this.props.errors)}</span>;
+    }
+
     const classes = ['validationFieldError'];
 
     if (this.props.className) {
       classes.push(...this.props.className.split(' '));
-    }
-
-    if (!this.props.errors.length) {
-      return <span>{this.props.children}</span>;
     }
 
     return (
@@ -27,17 +31,13 @@ FieldError.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => {
-  let errors = [];
   const formName = ownProps.formName;
   const fieldName = ownProps.fieldName;
   const formState = state.form[formName];
 
+  let errors = [];
   if (formState && formState.errors && Object.keys(formState.errors).length) {
-    const fieldErrors = formState.errors[fieldName];
-
-    if (fieldErrors) {
-      errors = fieldErrors.map(fieldError => fieldError.text);
-    }
+    errors = formState.errors[fieldName] || [];
   }
 
   return {
