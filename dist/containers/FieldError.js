@@ -62,7 +62,9 @@ var FieldError = function (_React$Component) {
         _react2.default.createElement(
           'span',
           null,
-          this.props.errors.join(' ')
+          this.props.errors.map(function (error) {
+            return error.text;
+          }).join(' ')
         )
       );
     }

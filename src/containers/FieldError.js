@@ -19,7 +19,7 @@ class FieldError extends React.Component {
 
     return (
       <span className={classes.join(' ')}>
-        <span>{this.props.errors.join(' ')}</span>
+        <span>{this.props.errors.map(error => error.text).join(' ')}</span>
       </span>
     );
   }
