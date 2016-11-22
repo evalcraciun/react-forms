@@ -83,12 +83,14 @@ var v_isNumeric = exports.v_isNumeric = function v_isNumeric(value) {
 };
 
 var v_isEmail = exports.v_isEmail = function v_isEmail(value) {
-  var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-  if (!re.test(value)) {
-    return {
-      text: 'Not a valid email address!',
-      key: 'email'
-    };
+  if (value != null && value.length !== 0) {
+    var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+    if (!re.test(value)) {
+      return {
+        text: 'Not a valid email address!',
+        key: 'email'
+      };
+    }
   }
   return false;
 };

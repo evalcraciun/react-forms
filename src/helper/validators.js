@@ -73,12 +73,14 @@ export const v_isNumeric = (value) => {
 };
 
 export const v_isEmail = (value) => {
-  const re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-  if (!re.test(value)) {
-    return {
-      text: 'Not a valid email address!',
-      key: 'email',
-    };
+  if (value != null && value.length !== 0) {
+    const re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+    if (!re.test(value)) {
+      return {
+        text: 'Not a valid email address!',
+        key: 'email',
+      };
+    }
   }
   return false;
 };
