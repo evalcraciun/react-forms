@@ -83,14 +83,12 @@ var v_isNumeric = exports.v_isNumeric = function v_isNumeric(value) {
 };
 
 var v_isEmail = exports.v_isEmail = function v_isEmail(value) {
-  if (value != null && value.length !== 0) {
-    var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-    if (!re.test(value)) {
-      return {
-        text: 'Not a valid email address!',
-        key: 'email'
-      };
-    }
+  var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+  if (value != null && value.length > 0 && !re.test(value)) {
+    return {
+      text: 'Not a valid email address!',
+      key: 'email'
+    };
   }
   return false;
 };
@@ -160,6 +158,7 @@ var v_testRegex = exports.v_testRegex = function v_testRegex(regexString) {
   }
 
   return function (value) {
+    if (!value) return;
     if (!regex) {
       // this is terrible from a ux perspective
       return {

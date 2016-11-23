@@ -73,14 +73,12 @@ export const v_isNumeric = (value) => {
 };
 
 export const v_isEmail = (value) => {
-  if (value != null && value.length !== 0) {
-    const re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-    if (!re.test(value)) {
-      return {
-        text: 'Not a valid email address!',
-        key: 'email',
-      };
-    }
+  const re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+  if ((value != null) && (value.length > 0) && (!re.test(value))) {
+    return {
+      text: 'Not a valid email address!',
+      key: 'email',
+    };
   }
   return false;
 };
@@ -148,6 +146,7 @@ export const v_testRegex = (regexString, regexFlags = 'g') => {
   }
 
   return (value) => {
+    if (!value) return;
     if (!regex) {
       // this is terrible from a ux perspective
       return {
