@@ -145,8 +145,7 @@ export const v_testRegex = (regexString, regexFlags = 'g') => {
     console.error('invalid regular expression for validation', regexString, e);
   }
 
-  return (value) => {
-    if (!value) return;
+  return (value) => {;
     if (!regex) {
       // this is terrible from a ux perspective
       return {
@@ -155,7 +154,7 @@ export const v_testRegex = (regexString, regexFlags = 'g') => {
       };
     }
 
-    return !regex.test(value) ? {
+    return value && !regex.test(value) ? {
       text: 'Invalid Value',
       key: 'regexFailed',
     } : false;
@@ -166,8 +165,11 @@ export const v_fileSize = (fileSizeKb) => {
   return (value) => {
     if (value && value.file && (value.file.size / 1000) > fileSizeKb) {
       return {
-        text: 'Upload is too big',
+        text: 'Upload is too big, max allowed is {size} KB',
         key: 'fileuploadSize',
+        values: {
+          size: fileSizeKb,
+        }
       };
     }
 

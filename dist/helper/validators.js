@@ -158,7 +158,7 @@ var v_testRegex = exports.v_testRegex = function v_testRegex(regexString) {
   }
 
   return function (value) {
-    if (!value) return;
+    ;
     if (!regex) {
       // this is terrible from a ux perspective
       return {
@@ -167,7 +167,7 @@ var v_testRegex = exports.v_testRegex = function v_testRegex(regexString) {
       };
     }
 
-    return !regex.test(value) ? {
+    return value && !regex.test(value) ? {
       text: 'Invalid Value',
       key: 'regexFailed'
     } : false;
@@ -178,8 +178,11 @@ var v_fileSize = exports.v_fileSize = function v_fileSize(fileSizeKb) {
   return function (value) {
     if (value && value.file && value.file.size / 1000 > fileSizeKb) {
       return {
-        text: 'Upload is too big',
-        key: 'fileuploadSize'
+        text: 'Upload is too big, max allowed is {size} KB',
+        key: 'fileuploadSize',
+        values: {
+          size: fileSizeKb
+        }
       };
     }
 
